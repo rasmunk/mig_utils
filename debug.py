@@ -30,7 +30,7 @@ def share_links_example():
     # IDMC Sharelink example
     print("IDMC")
     # Open connection to a sharelink
-    idmc_share = IDMCShare('KGDlunrM3w')
+    idmc_share = IDMCShare('jZ2M0LAucc')
     # List files/dirs in share
     print(idmc_share.list())
     # Read file directly as string

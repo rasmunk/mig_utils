@@ -39,7 +39,7 @@ class IdmcShareTest(unittest.TestCase):
 
     def setUp(self):
         # Open connection to a sharelink
-        self.share = IDMCShare('KGDlunrM3w')
+        self.share = IDMCShare('jZ2M0LAucc')
 
     def tearDown(self):
         pass
