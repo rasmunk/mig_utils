@@ -8,7 +8,7 @@ class ErdaShareTest(unittest.TestCase):
 
     def setUp(self):
         # Open connection to a sharelink
-        self.share = ErdaShare('jg6pkLQJse')
+        self.share = ErdaShare('MbjJq8euLg')
 
     def tearDown(self):
         pass
