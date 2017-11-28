@@ -1,8 +1,8 @@
-import fs, os
+import fs, six
 from fs.sshfs import SSHFS
 
 
-class DataStore:
+class DataStore(object):
     _client = None
     _target = ""
 
@@ -37,7 +37,7 @@ class DataStore:
         :return:
         a string of the content within file
         """
-        with self._client.open(filename) as open_file:
+        with self._client.open(six.text_type(filename)) as open_file:
             return open_file.read()
 
     def read_binary(self, filename):
@@ -48,7 +48,7 @@ class DataStore:
         :return:
         a binary of the content within file
         """
-        with self._client.openbin(filename) as open_file:
+        with self._client.openbin(six.text_type(filename)) as open_file:
             return open_file.read()
 
     def open(self, filename, flag):
@@ -61,7 +61,7 @@ class DataStore:
         :return:
         a _io.TextIOWrapper object with utf-8 encoding
         """
-        return self._client.open(filename, flag)
+        return self._client.open(six.text_type(filename), flag)
 
 # TODO -> cleanup duplication
 class ErdaShare(DataStore):
@@ -73,7 +73,7 @@ class ErdaShare(DataStore):
             An overview over your sharelinks can be found at https://erda.dk/wsgi-bin/sharelink.py.
         """
         client = fs.open_fs("ssh://" + share_link + ":" + share_link + self._target)
-        super().__init__(client=client)
+        super(ErdaShare, self).__init__(client=client)
 
 # TODO -> cleanup duplication
 class IDMCShare(DataStore):
@@ -85,7 +85,7 @@ class IDMCShare(DataStore):
             An overview over your sharelinks can be found at https://erda.dk/wsgi-bin/sharelink.py.
         """
         client = fs.open_fs("ssh://" + share_link + ":" + share_link + self._target)
-        super().__init__(client=client)
+        super(IDMCShare, self).__init__(client=client)
 
 
 class ErdaHome(DataStore):
@@ -100,5 +100,5 @@ class ErdaHome(DataStore):
         Same as user but the speficied password instead
         """
         client = SSHFS(ErdaHome._target, user=username, passwd=password)
-        super().__init__(client=client)
+        super(ErdaHome, self).__init__(client=client)
 

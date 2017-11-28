@@ -1,5 +1,10 @@
+import sys
 from setuptools import find_packages
-from distutils.core import setup
+# Python 2 install
+if sys.version_info[0] >= 3:
+    from distutils.core import setup
+else:
+    from setuptools import setup
 
 setup(
     name='nbi',

@@ -8,7 +8,7 @@ def share_links_example():
     # ERDA Sharelink example
     print("ERDA")
     # Open connection to a sharelink
-    erda_share = ErdaShare('jg6pkLQJse')
+    erda_share = ErdaShare('MbjJq8euLg')
     # List files/dirs in share
     print(erda_share.list())
     # Read file directly as string
