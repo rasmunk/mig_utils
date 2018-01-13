@@ -1,4 +1,5 @@
-import fs, six
+import fs
+import six
 from fs.sshfs import SSHFS
 
 
@@ -8,7 +9,9 @@ class DataStore(object):
 
     def __init__(self, client):
         """
-            :param client: This is the sshfs client instance that is used to access the datastore
+        :param client:
+        This is the sshfs client instance,
+        that is used to access the datastore
         """
         self._client = client
 
@@ -17,7 +20,8 @@ class DataStore(object):
         :param path:
         file system path which items will be returned
         :return:
-        A list of items in the path. There is no distinction between files and dirs
+        A list of items in the path.
+        There is no distinction between files and dirs
         """
         return self._client._sftp.listdir(path=path)
 
@@ -42,7 +46,6 @@ class DataStore(object):
 
     def read_binary(self, filename):
         """
-
         :param file:
         File to be read
         :return:
@@ -63,17 +66,22 @@ class DataStore(object):
         """
         return self._client.open(six.text_type(filename), flag)
 
+
 # TODO -> cleanup duplication
 class ErdaShare(DataStore):
-    _target = "@io.erda.dk/"
+    _target = "@sftp.erda.dk/"
 
     def __init__(self, share_link):
         """
-        :param share_link: This is the sharelink ID that is used to access the datastore,
-            An overview over your sharelinks can be found at https://erda.dk/wsgi-bin/sharelink.py.
+        :param share_link:
+        This is the sharelink ID that is used to access the datastore,
+        an overview over your sharelinks can be found at
+        https://erda.dk/wsgi-bin/sharelink.py.
         """
-        client = fs.open_fs("ssh://" + share_link + ":" + share_link + self._target)
+        client = fs.open_fs(
+            "ssh://" + share_link + ":" + share_link + self._target)
         super(ErdaShare, self).__init__(client=client)
+
 
 # TODO -> cleanup duplication
 class IDMCShare(DataStore):
@@ -81,24 +89,27 @@ class IDMCShare(DataStore):
 
     def __init__(self, share_link):
         """
-        :param share_link: This is the sharelink ID that is used to access the datastore,
-            An overview over your sharelinks can be found at https://erda.dk/wsgi-bin/sharelink.py.
+        :param share_link:
+        This is the sharelink ID that is used to access the datastore,
+        an overview over your sharelinks can be found at,
+        https://erda.dk/wsgi-bin/sharelink.py.
         """
-        client = fs.open_fs("ssh://" + share_link + ":" + share_link + self._target)
+        client = fs.open_fs(
+            "ssh://" + share_link + ":" + share_link + self._target)
         super(IDMCShare, self).__init__(client=client)
 
 
 class ErdaHome(DataStore):
-    _target = "io.erda.dk"
+    _target = "sftp.erda.dk"
 
     # TODO -> switch over to checking the OPENID session instead of username/password
     def __init__(self, username, password):
         """
         :param username:
-        The username to the users ERDA home directory, as can be found at https://erda.dk/wsgi-bin/settings.py?topic=sftp
+        The username to the users ERDA home directory,
+        as can be found at https://erda.dk/wsgi-bin/settings.py?topic=sftp
         :param password:
         Same as user but the speficied password instead
         """
         client = SSHFS(ErdaHome._target, user=username, passwd=password)
         super(ErdaHome, self).__init__(client=client)
-

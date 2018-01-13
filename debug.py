@@ -3,7 +3,7 @@ from nbi.DataStore import ErdaShare, IDMCShare, ErdaHome
 
 def share_links_example():
 
-    ### Sharelinks lib Tutorial ###
+    # Sharelinks lib Tutorial
 
     # ERDA Sharelink example
     print("ERDA")
@@ -48,7 +48,7 @@ def share_links_example():
 
 
 def home_example():
-    ### Erda Home example ###
+    # Erda Home example
     home = ErdaHome("username", "password")
     print(home.list())
     print(home.read('welcome.txt'))
@@ -58,6 +58,4 @@ def home_example():
 
 if __name__ == "__main__":
     share_links_example()
-    #home_example()
-
-
+    # home_example()

@@ -1,4 +1,6 @@
-import unittest, sys, _io
+import unittest
+import sys
+import _io
 sys.path.append("..")
 from nbi.DataStore import ErdaShare, IDMCShare
 
@@ -63,5 +65,3 @@ class IdmcShareTest(unittest.TestCase):
         self.assertIsInstance(file, _io.TextIOWrapper)
         self.assertEqual(file.read(), 'Torsk')
         file.close()
-
-
