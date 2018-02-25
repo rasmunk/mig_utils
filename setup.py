@@ -7,11 +7,16 @@ else:
     from setuptools import setup
 
 setup(
-    name='nbi',
-    version='0.1.1',
+    name='mig-utils',
+    version='0.0.1',
+    description='Minimum Intrusion Grid (MiG) Utilities library',
+    author='Rasmus Munk',
+    author_email='munk1@live.dk',
     packages=find_packages(),
-    setup_requires=[
-        'pytest-runner',
+    install_requires=[
+        'fs.sshfs>=0.7.1',
+        'fs>=2.0.7',
+        'six>=1.10'
     ],
     tests_require=[
         'pytest',

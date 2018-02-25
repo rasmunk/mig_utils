@@ -69,7 +69,7 @@ class DataStore(object):
 
 # TODO -> cleanup duplication
 class ErdaShare(DataStore):
-    _target = "@sftp.erda.dk/"
+    _target = "@io.erda.dk/"
 
     def __init__(self, share_link):
         """
@@ -100,7 +100,7 @@ class IDMCShare(DataStore):
 
 
 class ErdaHome(DataStore):
-    _target = "sftp.erda.dk"
+    _target = "io.erda.dk"
 
     # TODO -> switch over to checking the OPENID session instead of username/password
     def __init__(self, username, password):

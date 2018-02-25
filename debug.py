@@ -1,4 +1,4 @@
-from nbi.DataStore import ErdaShare, IDMCShare, ErdaHome
+from mig.io import ErdaShare, IDMCShare, ErdaHome
 
 
 def share_links_example():

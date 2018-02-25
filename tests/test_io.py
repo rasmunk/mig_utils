@@ -2,7 +2,7 @@ import unittest
 import sys
 import _io
 sys.path.append("..")
-from nbi.DataStore import ErdaShare, IDMCShare
+from mig.io import ErdaShare, IDMCShare
 
 
 class ErdaShareTest(unittest.TestCase):
