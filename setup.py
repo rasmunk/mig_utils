@@ -8,7 +8,7 @@ else:
 
 setup(
     name='mig-utils',
-    version='0.0.1',
+    version='0.0.2',
     description='Minimum Intrusion Grid (MiG) Utilities library',
     author='Rasmus Munk',
     author_email='munk1@live.dk',
