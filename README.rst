@@ -34,7 +34,7 @@ ERDA (https://erda.dk) sharelink access with python3 example::
   from mig.io import ErdaShare
   
   # Initialize sharelink
-  share = ErdaShare('MbjJq8euLg')
+  share = ErdaShare('SHARELINKID')
   
   # List files/dirs in share
   print(share.list())
