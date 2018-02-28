@@ -4,14 +4,28 @@
 
    <br />
 
------------
+====================================
 mig_utils
------------
+====================================
+
 A Minimum Intrusion Grid(MiG) utilities python library: |br|
 Includes the mig.io module that provides access to MiG Sharelinks through python.
 
+------------
+Installation
+------------
+
+Installation from pypi::
+
+    pip install mig-utils
+
+Installation from a local git repository::
+
+    cd mig-utils
+    pip install .
+
 -------
-Example
+IO Example
 -------
 
 ERDA (https://erda.dk) sharelink access with python3 example::
