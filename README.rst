@@ -4,9 +4,9 @@
 
    <br />
 
-====================================
+=========
 mig_utils
-====================================
+=========
 
 A Minimum Intrusion Grid(MiG) utilities python library: |br|
 Includes the mig.io module that provides access to MiG Sharelinks through python.
