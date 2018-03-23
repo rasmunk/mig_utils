@@ -1,8 +1,20 @@
 import unittest
 import sys
+import os
 import _io
 sys.path.append("..")
 from mig.io import ErdaShare, IDMCShare
+
+# Test input
+with open('sharelinks.txt', 'r') as file:
+    content = file.readlines()
+if content is not None and len(content) > 0:
+    sharelinks = dict((tuple(line.rstrip().split('=') for line in content)))
+else:
+    # Travis
+    sharelinks = {'ERDA_TEST_SHARE': os.environ['ERDA_TEST_SHARE'],
+                  'IDMC_TEST_SHARE': os.environ['IDMC_TEST_SHARE']}
+assert sharelinks is not None
 
 
 class ErdaShareTest(unittest.TestCase):
@@ -10,7 +22,8 @@ class ErdaShareTest(unittest.TestCase):
 
     def setUp(self):
         # Open connection to a sharelink
-        self.share = ErdaShare('MbjJq8euLg')
+        assert 'ERDA_TEST_SHARE' in sharelinks
+        self.share = ErdaShare(sharelinks['ERDA_TEST_SHARE'])
 
     def tearDown(self):
         pass
@@ -41,7 +54,8 @@ class IdmcShareTest(unittest.TestCase):
 
     def setUp(self):
         # Open connection to a sharelink
-        self.share = IDMCShare('jZ2M0LAucc')
+        assert 'IDMC_TEST_SHARE' in sharelinks
+        self.share = IDMCShare(sharelinks['IDMC_TEST_SHARE'])
 
     def tearDown(self):
         pass
