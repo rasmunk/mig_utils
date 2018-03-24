@@ -4,7 +4,6 @@ mig_utils
 
 .. image:: https://travis-ci.org/rasmunk/mig_utils.svg?branch=master
     :target: https://travis-ci.org/rasmunk/mig_utils
-.. |br| raw:: html
 
 
 A Minimum Intrusion Grid(MiG) utilities python library:

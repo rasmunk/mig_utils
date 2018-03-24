@@ -1,9 +1,7 @@
 import unittest
-import sys
 import os
 import six
 import _io
-sys.path.append("..")
 from mig.io import ErdaShare, IDMCShare
 
 
@@ -139,4 +137,3 @@ class IdmcShareTest(unittest.TestCase):
 
         self.assertIn(test_binary, self.share.read_binary('binary_test'))
         self.assertIn(test_b_num, self.share.read_binary('binary_test'))
-

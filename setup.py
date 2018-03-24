@@ -11,9 +11,10 @@ with open('README.rst') as r_file:
 
 setup(
     name='mig-utils',
-    long_description=long_description,
     version='0.1.2',
+    long_description=long_description,
     description='Minimum Intrusion Grid (MiG) Utilities library',
+    url='https://github.com/rasmunk/mig_utils',
     author='Rasmus Munk',
     author_email='munk1@live.dk',
     packages=find_packages(),
