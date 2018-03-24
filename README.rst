@@ -9,7 +9,9 @@ mig_utils
 =========
 
 A Minimum Intrusion Grid(MiG) utilities python library: |br|
-Includes the mig.io module that provides access to MiG Sharelinks through python.
+Includes the mig.io module that provides access to MiG Sharelinks through
+python by wrapping around (https://github.com/althonos/fs.sshfs) for sshfs
+connections.
 
 ------------
 Installation
