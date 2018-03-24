@@ -1,6 +1,7 @@
 import unittest
 import sys
 import os
+import six
 import _io
 sys.path.append("..")
 from mig.io import ErdaShare, IDMCShare
@@ -54,15 +55,16 @@ class ErdaShareTest(unittest.TestCase):
         tmp_file.close()
 
         # Writing strings to a file
-        test_string = "Hello There"
-        test_num = 42342342
-        test_float = 3434.231
+        # six -> ensure py2/3 compatibility
+        test_string = six.text_type('Hello There')
+        test_num = six.text_type(42342342)
+        test_float = six.text_type(3434.231)
 
         self.share.remove('write_test')
         with self.share.open('write_test', 'w') as w_file:
             w_file.write(test_string)
-            w_file.write(str(test_num))
-            w_file.write(str(test_float))
+            w_file.write(test_num)
+            w_file.write(test_float)
 
         self.assertIn(test_string, self.share.read('write_test'))
         self.assertIn(str(test_num), self.share.read('write_test'))
@@ -71,7 +73,7 @@ class ErdaShareTest(unittest.TestCase):
         # Writing binary to a file
         self.share.remove('binary_test')
         test_binary = b'Hello again'
-        test_b_num = (255).to_bytes(1, byteorder=sys.byteorder)
+        test_b_num = six.int2byte(255)
         with self.share.open('binary_test', 'wb') as b_file:
             b_file.write(test_binary)
             b_file.write(test_b_num)
@@ -112,24 +114,25 @@ class IdmcShareTest(unittest.TestCase):
         file.close()
 
         # Writing strings to a file
-        test_string = "Hello There"
-        test_num = 42342342
-        test_float = 3434.231
+        # six -> ensure py2/3 compatibility
+        test_string = six.text_type('Hello There')
+        test_num = six.text_type(42342342)
+        test_float = six.text_type(3434.231)
 
         self.share.remove('write_test')
         with self.share.open('write_test', 'w') as w_file:
             w_file.write(test_string)
-            w_file.write(str(test_num))
-            w_file.write(str(test_float))
+            w_file.write(test_num)
+            w_file.write(test_float)
 
         self.assertIn(test_string, self.share.read('write_test'))
-        self.assertIn(str(test_num), self.share.read('write_test'))
-        self.assertIn(str(test_float), self.share.read('write_test'))
+        self.assertIn(test_num, self.share.read('write_test'))
+        self.assertIn(test_float, self.share.read('write_test'))
 
         # Writing binary to a file
         self.share.remove('binary_test')
         test_binary = b'Hello again'
-        test_b_num = (255).to_bytes(1, byteorder=sys.byteorder)
+        test_b_num = six.int2byte(255)
         with self.share.open('binary_test', 'wb') as b_file:
             b_file.write(test_binary)
             b_file.write(test_b_num)
