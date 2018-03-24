@@ -1,19 +1,18 @@
-.. image:: https://travis-ci.org/rasmunk/mig_utils.svg?branch=master
-    :target: https://travis-ci.org/rasmunk/mig_utils
-.. |br| raw:: html
-
-   <br />
-
 =========
 mig_utils
 =========
 
-A Minimum Intrusion Grid(MiG) utilities python library: |br|
-Includes the mig.io module that provides access to MiG Sharelinks through
+.. image:: https://travis-ci.org/rasmunk/mig_utils.svg?branch=master
+    :target: https://travis-ci.org/rasmunk/mig_utils
+.. |br| raw:: html
+
+
+A Minimum Intrusion Grid(MiG) utilities python library:
+It includes the mig.io module that provides access to MiG Sharelinks through
 python by wrapping around (https://github.com/althonos/fs.sshfs) for sshfs
 connections.
 
-------------
+
 Installation
 ------------
 
@@ -26,9 +25,9 @@ Installation from a local git repository::
     cd mig-utils
     pip install .
 
--------
+
 IO Example
--------
+----------
 
 ERDA (https://erda.dk) sharelink access with python3 example::
   
