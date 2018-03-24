@@ -47,7 +47,7 @@ ERDA (https://erda.dk) sharelink access with python3 example::
   
   # Get a _io.TextIOWrapper object with automatic close
   with share.open('tmp', 'r') as tmp:
-    print(tmp.read())
+      print(tmp.read())
 
   # Get a default _io.TextIOWrapper object with manual lifetime
   file = share.open('tmp', 'r')

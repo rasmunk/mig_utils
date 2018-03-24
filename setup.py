@@ -6,8 +6,12 @@ if sys.version_info[0] >= 3:
 else:
     from setuptools import setup
 
+with open('README.rst') as r_file:
+    long_description = r_file.read()
+
 setup(
     name='mig-utils',
+    long_description=long_description,
     version='0.1.0',
     description='Minimum Intrusion Grid (MiG) Utilities library',
     author='Rasmus Munk',
