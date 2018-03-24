@@ -16,11 +16,14 @@ connections.
 Installation
 ------------
 
-Installation from pypi::
+Installation from pypi
+
+.. code-block:: sh
 
     pip install mig-utils
 
-Installation from a local git repository::
+Installation from a local git repository
+.. code-block:: sh
 
     cd mig-utils
     pip install .
@@ -29,8 +32,11 @@ Installation from a local git repository::
 IO Example
 ----------
 
-ERDA (https://erda.dk) sharelink access with python3 example::
-  
+ERDA (https://erda.dk) sharelink access with python3 example.
+A likewise sharelink class (IdmcShare) exists for IDMC (https://idmc.dk)
+
+.. code-block:: python
+
   # First import the class that gives you access to the share in question*
   from mig.io import ErdaShare
   
@@ -76,4 +82,3 @@ ERDA (https://erda.dk) sharelink access with python3 example::
   share.remove('writes_test')
   share.remove('binary_test')
 
-A likewise sharelink class exists for IDMC (https://idmc.dk)
