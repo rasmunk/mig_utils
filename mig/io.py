@@ -1,6 +1,7 @@
 import fs
 import six
 from fs.sshfs import SSHFS
+from fs.errors import ResourceNotFound
 
 
 class DataStore(object):
@@ -66,6 +67,27 @@ class DataStore(object):
         """
         return self._client.open(six.text_type(filename), flag)
 
+    def remove(self, path):
+        """
+        :param path:
+        :return:
+        """
+        try:
+            self._client.remove(path=path)
+            return True
+        except ResourceNotFound:
+            return False
+
+    def removedir(self, path):
+        """
+        :param path:
+        :return:
+        """
+        try:
+            self._client.removedir(path=path)
+            return True
+        except ResourceNotFound:
+            return False
 
 # TODO -> cleanup duplication
 class ErdaShare(DataStore):

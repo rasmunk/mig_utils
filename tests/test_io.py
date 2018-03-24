@@ -5,6 +5,7 @@ import _io
 sys.path.append("..")
 from mig.io import ErdaShare, IDMCShare
 
+
 # Test input
 try:
     with open('sharelinks.txt', 'r') as file:
@@ -52,6 +53,33 @@ class ErdaShareTest(unittest.TestCase):
         self.assertEqual(file.read(), 'sddsfsf')
         file.close()
 
+        # Writing strings to a file
+        test_string = "Hello There"
+        test_num = 42342342
+        test_float = 3434.231
+
+        self.share.remove('write_test')
+        with self.share.open('write_test', 'w') as w_file:
+            w_file.write(test_string)
+            w_file.write(str(test_num))
+            w_file.write(str(test_float))
+
+        self.assertIn(test_string, self.share.read('write_test'))
+        self.assertIn(str(test_num), self.share.read('write_test'))
+        self.assertIn(str(test_float), self.share.read('write_test'))
+
+        # Writing binary to a file
+        self.share.remove('binary_test')
+        test_binary = b'Hello again'
+        test_b_num = (255).to_bytes(1, byteorder=sys.byteorder)
+        with self.share.open('binary_test', 'wb') as b_file:
+            b_file.write(test_binary)
+            b_file.write(test_b_num)
+
+        self.assertIn(test_binary, self.share.read_binary('binary_test'))
+        self.assertIn(test_b_num, self.share.read_binary('binary_test'))
+
+
 
 class IdmcShareTest(unittest.TestCase):
     share = None
@@ -83,3 +111,30 @@ class IdmcShareTest(unittest.TestCase):
         self.assertIsInstance(file, _io.TextIOWrapper)
         self.assertEqual(file.read(), 'Torsk')
         file.close()
+
+        # Writing strings to a file
+        test_string = "Hello There"
+        test_num = 42342342
+        test_float = 3434.231
+
+        self.share.remove('write_test')
+        with self.share.open('write_test', 'w') as w_file:
+            w_file.write(test_string)
+            w_file.write(str(test_num))
+            w_file.write(str(test_float))
+
+        self.assertIn(test_string, self.share.read('write_test'))
+        self.assertIn(str(test_num), self.share.read('write_test'))
+        self.assertIn(str(test_float), self.share.read('write_test'))
+
+        # Writing binary to a file
+        self.share.remove('binary_test')
+        test_binary = b'Hello again'
+        test_b_num = (255).to_bytes(1, byteorder=sys.byteorder)
+        with self.share.open('binary_test', 'wb') as b_file:
+            b_file.write(test_binary)
+            b_file.write(test_b_num)
+
+        self.assertIn(test_binary, self.share.read_binary('binary_test'))
+        self.assertIn(test_b_num, self.share.read_binary('binary_test'))
+
