@@ -8,7 +8,7 @@ def share_links_example():
     # ERDA Sharelink example
     print("ERDA")
     # Open connection to a sharelink
-    erda_share = ErdaShare('MbjJq8euLg')
+    erda_share = ErdaShare('Sharelink')
     # List files/dirs in share
     print(erda_share.list())
     # Read file directly as string
@@ -30,7 +30,7 @@ def share_links_example():
     # IDMC Sharelink example
     print("IDMC")
     # Open connection to a sharelink
-    idmc_share = IDMCShare('jZ2M0LAucc')
+    idmc_share = IDMCShare('Sharelink')
     # List files/dirs in share
     print(idmc_share.list())
     # Read file directly as string
