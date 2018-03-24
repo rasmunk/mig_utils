@@ -70,10 +70,12 @@ class DataStore(object):
     def remove(self, path):
         """
         :param path:
+        path to the file that should be removed
         :return:
+        Bool, whether a file was removed or not
         """
         try:
-            self._client.remove(path=path)
+            self._client.remove(path=six.text_type(path))
             return True
         except ResourceNotFound:
             return False
@@ -81,13 +83,16 @@ class DataStore(object):
     def removedir(self, path):
         """
         :param path:
+        path the dir that should be removed
         :return:
+        Bool, whether a dir was removed or not
         """
         try:
-            self._client.removedir(path=path)
+            self._client.removedir(path=six.text_type(path))
             return True
         except ResourceNotFound:
             return False
+
 
 # TODO -> cleanup duplication
 class ErdaShare(DataStore):

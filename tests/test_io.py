@@ -48,10 +48,10 @@ class ErdaShareTest(unittest.TestCase):
             self.assertEqual(tmp.read(), 'sddsfsf')
 
         # Get a default _io.TextIOWrapper object with manual lifetime
-        file = self.share.open('tmp', 'r')
-        self.assertIsInstance(file, _io.TextIOWrapper)
-        self.assertEqual(file.read(), 'sddsfsf')
-        file.close()
+        tmp_file = self.share.open('tmp', 'r')
+        self.assertIsInstance(tmp_file, _io.TextIOWrapper)
+        self.assertEqual(tmp_file.read(), 'sddsfsf')
+        tmp_file.close()
 
         # Writing strings to a file
         test_string = "Hello There"
@@ -78,7 +78,6 @@ class ErdaShareTest(unittest.TestCase):
 
         self.assertIn(test_binary, self.share.read_binary('binary_test'))
         self.assertIn(test_b_num, self.share.read_binary('binary_test'))
-
 
 
 class IdmcShareTest(unittest.TestCase):
