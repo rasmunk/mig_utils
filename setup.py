@@ -12,7 +12,7 @@ with open('README.rst') as r_file:
 setup(
     name='mig-utils',
     long_description=long_description,
-    version='0.1.0',
+    version='0.1.1',
     description='Minimum Intrusion Grid (MiG) Utilities library',
     author='Rasmus Munk',
     author_email='munk1@live.dk',
