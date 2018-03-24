@@ -22,7 +22,9 @@ Installation from pypi
 
     pip install mig-utils
 
+
 Installation from a local git repository
+
 .. code-block:: sh
 
     cd mig-utils
