@@ -19,7 +19,7 @@ setup(
     author_email='munk1@live.dk',
     packages=find_packages(),
     install_requires=[
-        'fs.sshfs>=0.7.1',
+        'fs.sshfs>=0.8.0',
         'fs>=2.0.7',
         'six>=1.10'
     ],
