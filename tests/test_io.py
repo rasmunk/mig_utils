@@ -7,7 +7,7 @@ from mig.io import ErdaShare, IDMCShare
 
 # Test input
 try:
-    with open('sharelinks.txt', 'r') as file:
+    with open('res/sharelinks.txt', 'r') as file:
         content = file.readlines()
     assert content is not None
     assert len(content) > 0

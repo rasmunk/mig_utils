@@ -16,6 +16,9 @@ class DataStore(object):
         """
         self._client = client
 
+    def geturl(self, path):
+        return self._client.geturl(path)
+
     def list(self, path='.'):
         """
         :param path:
@@ -93,7 +96,6 @@ class DataStore(object):
         except ResourceNotFound:
             return False
 
-
 # TODO -> cleanup duplication
 class ErdaShare(DataStore):
     _target = "@io.erda.dk/"
@@ -114,7 +116,7 @@ class ErdaShare(DataStore):
 class IDMCShare(DataStore):
     _target = "@io.idmc.dk/"
 
-    def __init__(self, share_link):
+    def __init__(self, share_link, **options):
         """
         :param share_link:
         This is the sharelink ID that is used to access the datastore,
