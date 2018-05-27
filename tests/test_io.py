@@ -2,8 +2,8 @@ import unittest
 import os
 import six
 import _io
-from mig.io import ErdaShare, IDMCShare
-
+import ssh2
+from mig.io import ErdaShare, IDMCShare, ErdaSftpShare, IDMCSftpShare
 
 # Test input
 try:
@@ -21,7 +21,7 @@ except IOError:
                   'IDMC_TEST_SHARE': os.environ['IDMC_TEST_SHARE']}
 
 
-class ErdaShareTest(unittest.TestCase):
+class ErdaSSHFSShareTest(unittest.TestCase):
     share = None
 
     def setUp(self):
@@ -80,7 +80,7 @@ class ErdaShareTest(unittest.TestCase):
         self.assertIn(test_b_num, self.share.read_binary('binary_test'))
 
 
-class IdmcShareTest(unittest.TestCase):
+class IdmcSSHFSShareTest(unittest.TestCase):
     share = None
 
     def setUp(self):
@@ -134,6 +134,68 @@ class IdmcShareTest(unittest.TestCase):
         with self.share.open('binary_test', 'wb') as b_file:
             b_file.write(test_binary)
             b_file.write(test_b_num)
+
+        self.assertIn(test_binary, self.share.read_binary('binary_test'))
+        self.assertIn(test_b_num, self.share.read_binary('binary_test'))
+
+
+class ERDASFTPShareTest(unittest.TestCase):
+    share = None
+
+    def setUp(self):
+        assert 'ERDA_TEST_SHARE' in sharelinks
+        self.share = ErdaSftpShare(sharelinks['ERDA_TEST_SHARE'], sharelinks['ERDA_TEST_SHARE'])
+
+    def tearDown(self):
+        pass
+
+    # TODO -> implement
+    def test_share(self):
+        assert 0 == 0
+
+
+class IDMCSftpShareTest(unittest.TestCase):
+    share = None
+
+    def setUp(self):
+        assert 'IDMC_TEST_SHARE' in sharelinks
+        self.share = IDMCSftpShare(sharelinks['IDMC_TEST_SHARE'],
+                                   sharelinks['IDMC_TEST_SHARE'])
+
+    def tearDown(self):
+        self.share = None
+
+    def test_share(self):
+        # List files/dirs in share
+        self.assertIn('fisk', self.share.list())
+        # # Read file directly as string
+        self.assertEqual(self.share.read('fisk'), 'Torsk')
+        # # # Read file directly as binary
+        self.assertEqual(self.share.read_binary('fisk'), b'Torsk')
+
+        # # six -> ensure py2/3 compatibility
+        write_file = 'write_test'
+
+        test_string = 'Hello There'
+        test_num = 42342342
+        test_float = 3434.231
+
+        self.share.remove(write_file)
+        self.share.write(write_file, test_string)
+        self.share.write(write_file, test_num)
+        self.share.write(write_file, test_float)
+
+        self.assertIn(test_string, self.share.read('write_test'))
+        self.assertIn(str(test_num), self.share.read('write_test'))
+        self.assertIn(str(test_float), self.share.read('write_test'))
+
+        # Writing binary to a file
+        binary_file = 'binary_test'
+        self.share.remove(binary_file)
+        test_binary = b'Hello again'
+        test_b_num = six.int2byte(255)
+        self.share.write(binary_file, test_binary)
+        self.share.write(binary_file, test_b_num)
 
         self.assertIn(test_binary, self.share.read_binary('binary_test'))
         self.assertIn(test_b_num, self.share.read_binary('binary_test'))
