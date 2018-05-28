@@ -106,3 +106,4 @@ ENV/
 
 # secret test info
 sharelinks.txt
+benchmarks/
