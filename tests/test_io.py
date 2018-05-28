@@ -3,7 +3,8 @@ import sys
 import os
 import six
 import _io
-from mig.io import ErdaShare, IDMCShare, ErdaSftpShare, IDMCSftpShare
+from mig.io import ERDASSHFSShare, ERDASftpShare, \
+    IDMCSSHFSShare, IDMCSftpShare
 
 # Test input
 try:
@@ -21,13 +22,13 @@ except IOError:
                   'IDMC_TEST_SHARE': os.environ['IDMC_TEST_SHARE']}
 
 
-class ErdaSSHFSShareTest(unittest.TestCase):
+class ERDASSHFSShareTest(unittest.TestCase):
     share = None
 
     def setUp(self):
         # Open connection to a sharelink
         assert 'ERDA_TEST_SHARE' in sharelinks
-        self.share = ErdaShare(sharelinks['ERDA_TEST_SHARE'])
+        self.share = ERDASSHFSShare(sharelinks['ERDA_TEST_SHARE'])
 
     def tearDown(self):
         pass
@@ -82,13 +83,13 @@ class ErdaSSHFSShareTest(unittest.TestCase):
         self.assertIn(test_b_num, self.share.read_binary('binary_test'))
 
 
-class IdmcSSHFSShareTest(unittest.TestCase):
+class IDMCSSHFSShareTest(unittest.TestCase):
     share = None
 
     def setUp(self):
         # Open connection to a sharelink
         assert 'IDMC_TEST_SHARE' in sharelinks
-        self.share = IDMCShare(sharelinks['IDMC_TEST_SHARE'])
+        self.share = IDMCSSHFSShare(sharelinks['IDMC_TEST_SHARE'])
 
     def tearDown(self):
         pass
@@ -146,7 +147,7 @@ class ERDASFTPShareTest(unittest.TestCase):
 
     def setUp(self):
         assert 'ERDA_TEST_SHARE' in sharelinks
-        self.share = ErdaSftpShare(sharelinks['ERDA_TEST_SHARE'],
+        self.share = ERDASftpShare(sharelinks['ERDA_TEST_SHARE'],
                                    sharelinks['ERDA_TEST_SHARE'])
 
     def tearDown(self):

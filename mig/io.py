@@ -157,6 +157,12 @@ class SFTPStore(DataStore):
         super(SFTPStore, self).__init__(client=client)
 
     def open(self, path, flag='r'):
+        """
+        :param path: path to file on the sftp end
+        :param flag: open mode, either 'r'=read, w='write' or a='append'
+        :return: SFTPHandle, https://github.com/ParallelSSH/ssh2-python
+        /blob/master/ssh2/sftp_handle.pyx
+        """
         if flag == 'r':
             return self._client.open(six.text_type(path), LIBSSH2_FXF_READ,
                                      LIBSSH2_SFTP_S_IWUSR)
@@ -173,13 +179,27 @@ class SFTPStore(DataStore):
             return self._client.open(six.text_type(path), w_flags, mode)
 
     def list(self, path='.'):
+        """
+        :param path: path to the directory which content should be listed
+        :return: list of str, of items in the path directory
+        """
         with self._client.opendir(six.text_type(path)) as fh:
             return [name.decode('utf-8') for size, name, attrs in fh.readdir()]
 
     def read(self, path):
+        """
+        :param path: path to the file that should be read
+        :return: the content of path, decoded to utf-8 string
+        """
         return self.read_binary(six.text_type(path)).decode('utf-8')
 
     def write(self, path, data, flag='a'):
+        """
+        :param path: path to the file that should be created/written to
+        :param data: data that should be written to the file, expects binary or str
+        :param flag: write mode
+        :return:
+        """
         with self.open(six.text_type(path), flag) as fh:
             if type(data) == bytes:
                 fh.write(data)
@@ -189,9 +209,16 @@ class SFTPStore(DataStore):
                 fh.write(six.b(str(data)))
 
     def remove(self, path):
+        """
+        :param path: path to the file that should be removed
+        """
         self._client.unlink(six.text_type(path))
 
     def read_binary(self, path):
+        """
+        :param path: path to the file that should be read
+        :return: a binary string of the content within in file
+        """
         data = []
         with self.open(six.text_type(path)) as fh:
             for size, chunk in fh:
@@ -207,8 +234,15 @@ class IDMC:
     url = "io.idmc.dk"
 
 
+class ERDASftpShare(SFTPStore):
+
+    def __init__(self, username=None, password=None):
+        self._target = ERDA.url
+        super(ERDASftpShare, self).__init__(username, password)
+
+
 # TODO -> cleanup duplication
-class ErdaShare(SSHFSStore):
+class ERDASSHFSShare(SSHFSStore):
 
     def __init__(self, share_link):
         """
@@ -218,20 +252,19 @@ class ErdaShare(SSHFSStore):
         https://erda.dk/wsgi-bin/sharelink.py.
         """
         self._target = "@" + ERDA.url + "/"
-        super(ErdaShare, self).__init__(username=share_link, password=share_link)
+        super(ERDASSHFSShare, self).__init__(username=share_link, password=share_link)
 
 
-class ErdaSftpShare(SFTPStore):
+class ERDAShare(ERDASftpShare):
 
-    def __init__(self, username=None, password=None):
-        self._target = ERDA.url
-        super(ErdaSftpShare, self).__init__(username, password)
+    def __init__(self, share_link):
+        super(ERDAShare).__init__(share_link, share_link)
 
 
 # TODO -> cleanup duplication
-class IDMCShare(SSHFSStore):
+class IDMCSSHFSShare(SSHFSStore):
 
-    def __init__(self, share_link, **options):
+    def __init__(self, share_link):
         """
         :param share_link:
         This is the sharelink ID that is used to access the datastore,
@@ -239,7 +272,7 @@ class IDMCShare(SSHFSStore):
         https://erda.dk/wsgi-bin/sharelink.py.
         """
         self._target = "@" + IDMC.url + "/"
-        super(IDMCShare, self).__init__(username=share_link, password=share_link)
+        super(IDMCSSHFSShare, self).__init__(username=share_link, password=share_link)
 
 
 class IDMCSftpShare(SFTPStore):
@@ -247,6 +280,12 @@ class IDMCSftpShare(SFTPStore):
     def __init__(self, username=None, password=None):
         self._target = IDMC.url
         super(IDMCSftpShare, self).__init__(username, password)
+
+
+class IDMCShare(IDMCSftpShare):
+
+    def __init__(self, share_link):
+        super(IDMCShare).__init__(share_link, share_link)
 
 # class ErdaHome(DataStore):
 #     _target = ERDA.url
