@@ -1,4 +1,5 @@
 import unittest
+import sys
 import os
 import six
 import _io
@@ -78,7 +79,6 @@ class ErdaSSHFSShareTest(unittest.TestCase):
 
         self.assertIn(test_binary, self.share.read_binary('binary_test'))
         self.assertIn(test_b_num, self.share.read_binary('binary_test'))
-
 
 class IdmcSSHFSShareTest(unittest.TestCase):
     share = None
@@ -199,3 +199,7 @@ class IDMCSftpShareTest(unittest.TestCase):
 
         self.assertIn(test_binary, self.share.read_binary('binary_test'))
         self.assertIn(test_b_num, self.share.read_binary('binary_test'))
+
+        # Read 100 mb image
+        img = self.share.read_binary('kmeans.tif')
+        self.assertEqual(133246888, sys.getsizeof(img))

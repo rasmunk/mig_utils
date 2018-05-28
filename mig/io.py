@@ -125,8 +125,6 @@ class SSHFSStore(DataStore):
 class SFTPStore(DataStore):
 
     def __init__(self, username=None, password=None):
-        assert username is not None
-        assert password is not None
 
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self._target, 22))
@@ -160,9 +158,11 @@ class SFTPStore(DataStore):
         return self.read_binary(six.text_type(path)).decode('utf-8')
 
     def read_binary(self, path):
+        data = []
         with self.open(six.text_type(path)) as fh:
-            size, data = fh.read()
-            return data
+            for size, chunk in fh:
+                data.append(chunk)
+        return b"".join(data)
 
     def remove(self, path):
         self._client.unlink(six.text_type(path))
@@ -176,13 +176,14 @@ class SFTPStore(DataStore):
             else:
                 fh.write(six.b(str(data)))
 
+
 # class AsyncSFTPStore(SFTPStore):
 #
-#      def __init__(self, username=None, password=None):
-#          super(AsyncSFTPStore, self).__init__(username, password)
+#     def __init__(self, username=None, password=None):
+#         super(AsyncSFTPStore, self).__init__(username, password)
 #
-#     async def open(self, filename):
-
+#     async def open(self, filename, flag='r'):
+#         pass
 
 
 class ERDA:
@@ -233,8 +234,6 @@ class IDMCSftpShare(SFTPStore):
     def __init__(self, username=None, password=None):
         self._target = IDMC.url
         super(IDMCSftpShare, self).__init__(username, password)
-
-
 
 
 # class ErdaHome(DataStore):

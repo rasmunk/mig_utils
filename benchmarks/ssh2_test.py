@@ -48,15 +48,17 @@ if __name__ == "__main__":
     mb_interval = 0.0
     # Reading file
     share = mig.io.IDMCSftpShare(sharelink, sharelink)
-    write_file = "write_test"
-    content = share.read('fisk')
-    with share.open(write_file, 'w') as w_file:
-        w_file.write(b'sdfsdfsf')
+    #write_file = "write_test"
+    #content = share.read('fisk')
+    # with share.open(write_file, 'w') as w_file:
+    #    w_file.write(b'sdfsdfsf')
 
-    write_content = share.read(write_file)
-    print(write_content)
-    share.remove(write_file)
+    #write_content = share.read(write_file)
+    #print(write_content)
+    #share.remove(write_file)
 
+    img = share.read_binary('big_image.tif')
+    print("size {}".format(sys.getsizeof(img)))
 
     # with sftp.open("AVS5M_10X_50keV_LE1_8s_recon_Export.tif",
     #                LIBSSH2_FXF_READ, LIBSSH2_SFTP_S_IRUSR) as fh, \
