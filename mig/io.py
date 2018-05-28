@@ -4,13 +4,13 @@ import socket
 from abc import ABCMeta, abstractmethod
 from fs.errors import ResourceNotFound
 from ssh2.session import Session
-from ssh2.utils import wait_socket
 from ssh2.sftp import LIBSSH2_FXF_READ, LIBSSH2_FXF_WRITE, LIBSSH2_FXF_CREAT, \
     LIBSSH2_SFTP_S_IRUSR, LIBSSH2_SFTP_S_IWUSR, LIBSSH2_SFTP_S_IRGRP, \
     LIBSSH2_SFTP_S_IROTH, LIBSSH2_FXF_APPEND
 
 
-class DataStore(metaclass=ABCMeta):
+@six.add_metaclass(ABCMeta)
+class DataStore():
     _client = None
     _target = ""
 
@@ -24,11 +24,23 @@ class DataStore(metaclass=ABCMeta):
 
     @abstractmethod
     def open(self, path, flag='r'):
-        ...
+        pass
+
+    @abstractmethod
+    def list(self, path):
+        pass
 
     @abstractmethod
     def read(self, path):
-        ...
+        pass
+
+    @abstractmethod
+    def write(self, path, data, flag='a'):
+        pass
+
+    @abstractmethod
+    def remove(self, path):
+        pass
 
 
 class SSHFSStore(DataStore):
@@ -43,45 +55,6 @@ class SSHFSStore(DataStore):
     def geturl(self, path):
         return self._client.geturl(path)
 
-    def list(self, path='.'):
-        """
-        :param path:
-        file system path which items will be returned
-        :return:
-        A list of items in the path.
-        There is no distinction between files and dirs
-        """
-        return self._client._sftp.listdir(path=path)
-
-    def list_attr(self, path='.'):
-        """
-        :param path:
-        directory path to be listed
-        :return:
-        A list of .SFTPAttributes objects
-        """
-        return self._client._sftp.listdir_attr(path=path)
-
-    def read(self, path):
-        """
-        :param file:
-        File to be read
-        :return:
-        a string of the content within file
-        """
-        with self._client.open(six.text_type(path)) as open_file:
-            return open_file.read()
-
-    def read_binary(self, path):
-        """
-        :param file:
-        File to be read
-        :return:
-        a binary of the content within file
-        """
-        with self._client.openbin(six.text_type(path)) as open_file:
-            return open_file.read()
-
     def open(self, path, flag='r'):
         """
         Used to get a python filehandler object
@@ -94,6 +67,37 @@ class SSHFSStore(DataStore):
         """
         return self._client.open(six.text_type(path), flag)
 
+    def list(self, path='.'):
+        """
+        :param path:
+        file system path which items will be returned
+        :return:
+        A list of items in the path.
+        There is no distinction between files and dirs
+        """
+        return self._client._sftp.listdir(six.text_type(path))
+
+    def read(self, path):
+        """
+        :param file:
+        File to be read
+        :return:
+        a string of the content within file
+        """
+        with self._client.open(six.text_type(path)) as open_file:
+            return open_file.read()
+
+    def write(self, path, data, flag='a'):
+        """
+        :param path:
+        path to the file being written
+        :param data: data to being written
+        :param flag: write flag, defaults to append
+        :return:
+        """
+        with self.open(six.text_type(path), flag) as fh:
+            fh.write(data)
+
     def remove(self, path):
         """
         :param path:
@@ -102,10 +106,29 @@ class SSHFSStore(DataStore):
         Bool, whether a file was removed or not
         """
         try:
-            self._client.remove(path=six.text_type(path))
+            self._client.remove(six.text_type(path))
             return True
         except ResourceNotFound:
             return False
+
+    def list_attr(self, path='.'):
+        """
+        :param path:
+        directory path to be listed
+        :return:
+        A list of .SFTPAttributes objects
+        """
+        return self._client._sftp.listdir_attr(six.text_type(path))
+
+    def read_binary(self, path):
+        """
+        :param file:
+        File to be read
+        :return:
+        a binary of the content within file
+        """
+        with self._client.openbin(six.text_type(path)) as open_file:
+            return open_file.read()
 
     def removedir(self, path):
         """
@@ -115,7 +138,7 @@ class SSHFSStore(DataStore):
         Bool, whether a dir was removed or not
         """
         try:
-            self._client.removedir(path=six.text_type(path))
+            self._client.removedir(six.text_type(path))
             return True
         except ResourceNotFound:
             return False
@@ -133,10 +156,6 @@ class SFTPStore(DataStore):
         client = s.sftp_init()
         super(SFTPStore, self).__init__(client=client)
 
-    def list(self, path='/'):
-        with self._client.opendir(path) as fh:
-            return [name.decode('utf-8') for size, name, attrs in fh.readdir()]
-
     def open(self, path, flag='r'):
         if flag == 'r':
             return self._client.open(six.text_type(path), LIBSSH2_FXF_READ,
@@ -153,18 +172,12 @@ class SFTPStore(DataStore):
                 LIBSSH2_SFTP_S_IROTH
             return self._client.open(six.text_type(path), w_flags, mode)
 
+    def list(self, path='.'):
+        with self._client.opendir(six.text_type(path)) as fh:
+            return [name.decode('utf-8') for size, name, attrs in fh.readdir()]
+
     def read(self, path):
         return self.read_binary(six.text_type(path)).decode('utf-8')
-
-    def read_binary(self, path):
-        data = []
-        with self.open(six.text_type(path)) as fh:
-            for size, chunk in fh:
-                data.append(chunk)
-        return b"".join(data)
-
-    def remove(self, path):
-        self._client.unlink(six.text_type(path))
 
     def write(self, path, data, flag='a'):
         with self.open(six.text_type(path), flag) as fh:
@@ -174,6 +187,17 @@ class SFTPStore(DataStore):
                 fh.write(six.b(data))
             else:
                 fh.write(six.b(str(data)))
+
+    def remove(self, path):
+        self._client.unlink(six.text_type(path))
+
+    def read_binary(self, path):
+        data = []
+        with self.open(six.text_type(path)) as fh:
+            for size, chunk in fh:
+                data.append(chunk)
+        return b"".join(data)
+
 
 class ERDA:
     url = "io.erda.dk"
