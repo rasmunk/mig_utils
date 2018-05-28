@@ -153,6 +153,7 @@ class SFTPStore(DataStore):
         s.handshake(sock)
         s.userauth_password(username, password)
         s.open_session()
+        s.set_blocking(True)
         client = s.sftp_init()
         super(SFTPStore, self).__init__(client=client)
 
