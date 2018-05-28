@@ -259,7 +259,7 @@ class ERDASSHFSShare(SSHFSStore):
 class ERDAShare(ERDASftpShare):
 
     def __init__(self, share_link):
-        super(ERDAShare).__init__(share_link, share_link)
+        super(ERDAShare, self).__init__(share_link, share_link)
 
 
 # TODO -> cleanup duplication
@@ -286,7 +286,7 @@ class IDMCSftpShare(SFTPStore):
 class IDMCShare(IDMCSftpShare):
 
     def __init__(self, share_link):
-        super(IDMCShare).__init__(share_link, share_link)
+        super(IDMCShare, self).__init__(share_link, share_link)
 
 # class ErdaHome(DataStore):
 #     _target = ERDA.url
