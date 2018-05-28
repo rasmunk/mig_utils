@@ -35,24 +35,25 @@ class ERDASSHFSShareTest(unittest.TestCase):
         pass
 
     def test_share(self):
+        tmp_file = "tmp_sshfs_erda"
         # List files/dirs in share
-        self.share.remove('tmp')
-        self.share.write('tmp', six.text_type("sddsfsf"))
-        self.assertIn('tmp', self.share.list())
+        self.share.remove(tmp_file)
+        self.share.write(tmp_file, six.text_type("sddsfsf"))
+        self.assertIn(tmp_file, self.share.list())
         # Read file directly as string
-        self.assertEqual(self.share.read('tmp'), 'sddsfsf')
+        self.assertEqual(self.share.read(tmp_file), 'sddsfsf')
         # Read file directly as binary
-        self.assertEqual(self.share.read_binary('tmp'), b'sddsfsf')
+        self.assertEqual(self.share.read_binary(tmp_file), b'sddsfsf')
 
         # Get a _io.TextIOWrapper object with automatic close
-        with self.share.open('tmp', 'r') as tmp:
-            self.assertEqual(tmp.read(), 'sddsfsf')
+        with self.share.open(tmp_file, 'r') as fh:
+            self.assertEqual(fh.read(), 'sddsfsf')
 
         # Get a default _io.TextIOWrapper object with manual lifetime
-        tmp_file = self.share.open('tmp', 'r')
-        self.assertIsInstance(tmp_file, _io.TextIOWrapper)
-        self.assertEqual(tmp_file.read(), 'sddsfsf')
-        tmp_file.close()
+        fh = self.share.open(tmp_file, 'r')
+        self.assertIsInstance(fh, _io.TextIOWrapper)
+        self.assertEqual(fh.read(), 'sddsfsf')
+        fh.close()
 
         # Writing strings to a file
         # six -> ensure py2/3 compatibility
@@ -156,24 +157,25 @@ class ERDASFTPShareTest(unittest.TestCase):
         self.share = None
 
     def test_share(self):
-        self.share.remove('tmp')
-        self.share.write('tmp', six.text_type("sddsfsf"))
-        self.assertIn('tmp', self.share.list())
+        tmp_file = "tmp_sftp_erda"
+        self.share.remove(tmp_file)
+        self.share.write(tmp_file, six.text_type("sddsfsf"))
+        self.assertIn(tmp_file, self.share.list())
         # Read file directly as string
-        self.assertEqual(self.share.read('tmp'), "sddsfsf")
+        self.assertEqual(self.share.read(tmp_file), "sddsfsf")
         # Read file directly as binary
-        self.assertEqual(self.share.read_binary('tmp'), b'sddsfsf')
+        self.assertEqual(self.share.read_binary(tmp_file), b'sddsfsf')
 
         # Get a _io.TextIOWrapper object with automatic close
 
-        with self.share.open('tmp', 'r') as tmp:
+        with self.share.open(tmp_file, 'r') as tmp:
             self.assertEqual(tmp.read()[1].decode('utf-8'), "sddsfsf")
 
         # Get a default SFTPHandle object with manual lifetime
-        tmp_file = self.share.open('tmp', 'r')
-        self.assertIsInstance(tmp_file, SFTPHandle)
-        self.assertEqual(tmp.read()[1].decode('utf-8'), "sddsfsf")
-        tmp_file.close()
+        fh = self.share.open(tmp_file, 'r')
+        self.assertIsInstance(fh, SFTPHandle)
+        self.assertEqual(fh.read()[1].decode('utf-8'), "sddsfsf")
+        fh.close()
 
         # Writing strings to a file
         # six -> ensure py2/3 compatibility
