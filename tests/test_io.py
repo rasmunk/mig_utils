@@ -95,21 +95,22 @@ class IDMCSSHFSShareTest(unittest.TestCase):
         pass
 
     def test_share(self):
-        self.share.remove('fisk')
-        self.share.write('fisk', six.text_type("Torsk"))
+        single_file = "fisk_sshfs_idmc"
+        self.share.remove(single_file)
+        self.share.write(single_file, six.text_type("Torsk"))
         # List files/dirs in share
-        self.assertIn('fisk', self.share.list())
+        self.assertIn(single_file, self.share.list())
         # Read file directly as string
-        self.assertEqual(self.share.read('fisk'), 'Torsk')
+        self.assertEqual(self.share.read(single_file), 'Torsk')
         # Read file directly as binary
-        self.assertEqual(self.share.read_binary('fisk'), b'Torsk')
+        self.assertEqual(self.share.read_binary(single_file), b'Torsk')
 
         # Get a _io.TextIOWrapper object with automatic close
-        with self.share.open('fisk', 'r') as tmp:
+        with self.share.open(single_file, 'r') as tmp:
             self.assertEqual(tmp.read(), 'Torsk')
 
         # Get a default _io.TextIOWrapper object with manual lifetime
-        file = self.share.open('fisk', 'r')
+        file = self.share.open(single_file, 'r')
         self.assertIsInstance(file, _io.TextIOWrapper)
         self.assertEqual(file.read(), 'Torsk')
         file.close()
@@ -196,7 +197,7 @@ class ERDASFTPShareTest(unittest.TestCase):
         self.share.remove('binary_test')
         test_binary = b'Hello again'
         test_b_num = six.int2byte(255)
-        with self.share.open('binary_test', 'w') as b_file:
+        with self.share.open('binary_test', 'a') as b_file:
             b_file.write(test_binary)
             b_file.write(test_b_num)
 
@@ -220,14 +221,15 @@ class IDMCSftpShareTest(unittest.TestCase):
         self.share = None
 
     def test_share(self):
-        self.share.remove('fisk')
-        self.share.write('fisk', six.text_type("Torsk"))
+        single_file = "fisk_sftp_idmc"
+        self.share.remove(single_file)
+        self.share.write(single_file, six.text_type("Torsk"))
         # List files/dirs in share
-        self.assertIn('fisk', self.share.list())
+        self.assertIn(single_file, self.share.list())
         # # Read file directly as string
-        self.assertEqual(self.share.read('fisk'), 'Torsk')
+        self.assertEqual(self.share.read(single_file), 'Torsk')
         # # # Read file directly as binary
-        self.assertEqual(self.share.read_binary('fisk'), b'Torsk')
+        self.assertEqual(self.share.read_binary(single_file), b'Torsk')
 
         # # six -> ensure py2/3 compatibility
         write_file = 'write_test_sftp_idmc'
