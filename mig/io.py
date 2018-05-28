@@ -4,6 +4,7 @@ import socket
 from abc import ABCMeta, abstractmethod
 from fs.errors import ResourceNotFound
 from ssh2.session import Session
+from ssh2.utils import wait_socket
 from ssh2.sftp import LIBSSH2_FXF_READ, LIBSSH2_FXF_WRITE, LIBSSH2_FXF_CREAT, \
     LIBSSH2_SFTP_S_IRUSR, LIBSSH2_SFTP_S_IWUSR, LIBSSH2_SFTP_S_IRGRP, \
     LIBSSH2_SFTP_S_IROTH, LIBSSH2_FXF_APPEND
@@ -123,7 +124,6 @@ class SSHFSStore(DataStore):
 class SFTPStore(DataStore):
 
     def __init__(self, username=None, password=None):
-
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((self._target, 22))
         s = Session()
@@ -174,16 +174,6 @@ class SFTPStore(DataStore):
                 fh.write(six.b(data))
             else:
                 fh.write(six.b(str(data)))
-
-
-class AsyncSFTPStore(SFTPStore):
-
-    def __init__(self, username=None, password=None):
-        super(AsyncSFTPStore, self).__init__(username, password)
-
-    async def open(self, filename, flag='r'):
-        pass
-
 
 class ERDA:
     url = "io.erda.dk"
