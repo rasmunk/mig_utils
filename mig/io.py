@@ -5,10 +5,8 @@ from abc import ABCMeta, abstractmethod
 from fs.errors import ResourceNotFound
 from ssh2.session import Session
 from ssh2.sftp import LIBSSH2_FXF_READ, LIBSSH2_FXF_WRITE, LIBSSH2_FXF_CREAT, \
-    LIBSSH2_SFTP_S_IRUSR, LIBSSH2_SFTP_S_IWUSR, LIBSSH2_SFTP_S_IRGRP, LIBSSH2_SFTP_S_IROTH, \
-    LIBSSH2_FXF_APPEND
-from ssh2.utils import wait_socket
-from ssh2.error_codes import LIBSSH2_ERROR_EAGAIN
+    LIBSSH2_SFTP_S_IRUSR, LIBSSH2_SFTP_S_IWUSR, LIBSSH2_SFTP_S_IRGRP, \
+    LIBSSH2_SFTP_S_IROTH, LIBSSH2_FXF_APPEND
 
 
 class DataStore(metaclass=ABCMeta):
@@ -141,7 +139,8 @@ class SFTPStore(DataStore):
 
     def open(self, path, flag='r'):
         if flag == 'r':
-            return self._client.open(six.text_type(path), LIBSSH2_FXF_READ, LIBSSH2_SFTP_S_IWUSR)
+            return self._client.open(six.text_type(path), LIBSSH2_FXF_READ,
+                                     LIBSSH2_SFTP_S_IWUSR)
         else:
             w_flags = None
             if flag == 'w':
@@ -149,9 +148,9 @@ class SFTPStore(DataStore):
             elif flag == 'a':
                 w_flags = LIBSSH2_FXF_CREAT | LIBSSH2_FXF_WRITE | LIBSSH2_FXF_APPEND
             mode = LIBSSH2_SFTP_S_IRUSR | \
-                   LIBSSH2_SFTP_S_IWUSR | \
-                   LIBSSH2_SFTP_S_IRGRP | \
-                   LIBSSH2_SFTP_S_IROTH
+                LIBSSH2_SFTP_S_IWUSR | \
+                LIBSSH2_SFTP_S_IRGRP | \
+                LIBSSH2_SFTP_S_IROTH
             return self._client.open(six.text_type(path), w_flags, mode)
 
     def read(self, path):
@@ -234,7 +233,6 @@ class IDMCSftpShare(SFTPStore):
     def __init__(self, username=None, password=None):
         self._target = IDMC.url
         super(IDMCSftpShare, self).__init__(username, password)
-
 
 # class ErdaHome(DataStore):
 #     _target = ERDA.url

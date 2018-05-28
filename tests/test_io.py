@@ -3,7 +3,6 @@ import sys
 import os
 import six
 import _io
-import ssh2
 from mig.io import ErdaShare, IDMCShare, ErdaSftpShare, IDMCSftpShare
 
 # Test input
@@ -80,6 +79,7 @@ class ErdaSSHFSShareTest(unittest.TestCase):
         self.assertIn(test_binary, self.share.read_binary('binary_test'))
         self.assertIn(test_b_num, self.share.read_binary('binary_test'))
 
+
 class IdmcSSHFSShareTest(unittest.TestCase):
     share = None
 
@@ -144,7 +144,8 @@ class ERDASFTPShareTest(unittest.TestCase):
 
     def setUp(self):
         assert 'ERDA_TEST_SHARE' in sharelinks
-        self.share = ErdaSftpShare(sharelinks['ERDA_TEST_SHARE'], sharelinks['ERDA_TEST_SHARE'])
+        self.share = ErdaSftpShare(sharelinks['ERDA_TEST_SHARE'],
+                                   sharelinks['ERDA_TEST_SHARE'])
 
     def tearDown(self):
         pass
