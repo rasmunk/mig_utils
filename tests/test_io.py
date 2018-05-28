@@ -73,15 +73,16 @@ class ERDASSHFSShareTest(unittest.TestCase):
         self.assertIn(str(test_float), self.share.read(write_file))
 
         # Writing binary to a file
-        self.share.remove('binary_test')
+        binary_file = 'binary_test_sshfs_erda'
+        self.share.remove(binary_file)
         test_binary = b'Hello again'
         test_b_num = six.int2byte(255)
-        with self.share.open('binary_test', 'wb') as b_file:
+        with self.share.open(binary_file, 'wb') as b_file:
             b_file.write(test_binary)
             b_file.write(test_b_num)
 
-        self.assertIn(test_binary, self.share.read_binary('binary_test'))
-        self.assertIn(test_b_num, self.share.read_binary('binary_test'))
+        self.assertIn(test_binary, self.share.read_binary(binary_file))
+        self.assertIn(test_b_num, self.share.read_binary(binary_file))
 
 
 class IDMCSSHFSShareTest(unittest.TestCase):
@@ -134,15 +135,16 @@ class IDMCSSHFSShareTest(unittest.TestCase):
         self.assertIn(str(test_float), self.share.read(write_file))
 
         # Writing binary to a file
-        self.share.remove('binary_test')
+        binary_file = 'binary_test_sshfs_idmc'
+        self.share.remove(binary_file)
         test_binary = b'Hello again'
         test_b_num = six.int2byte(255)
-        with self.share.open('binary_test', 'wb') as b_file:
+        with self.share.open(binary_file, 'wb') as b_file:
             b_file.write(test_binary)
             b_file.write(test_b_num)
 
-        self.assertIn(test_binary, self.share.read_binary('binary_test'))
-        self.assertIn(test_b_num, self.share.read_binary('binary_test'))
+        self.assertIn(test_binary, self.share.read_binary(binary_file))
+        self.assertIn(test_b_num, self.share.read_binary(binary_file))
 
 
 class ERDASFTPShareTest(unittest.TestCase):
@@ -196,15 +198,16 @@ class ERDASFTPShareTest(unittest.TestCase):
         self.assertIn(six.text_type(test_float), self.share.read(write_file))
 
         # Writing binary to a file
-        self.share.remove('binary_test')
+        binary_file = 'binary_test_sftp_erda'
+        self.share.remove(binary_file)
         test_binary = b'Hello again'
         test_b_num = six.int2byte(255)
-        with self.share.open('binary_test', 'a') as b_file:
+        with self.share.open(binary_file, 'a') as b_file:
             b_file.write(test_binary)
             b_file.write(test_b_num)
 
-        self.assertIn(test_binary, self.share.read_binary('binary_test'))
-        self.assertIn(test_b_num, self.share.read_binary('binary_test'))
+        self.assertIn(test_binary, self.share.read_binary(binary_file))
+        self.assertIn(test_b_num, self.share.read_binary(binary_file))
 
         # Read 100 mb image
         img = self.share.read_binary('kmeans.tif')
@@ -233,12 +236,11 @@ class IDMCSftpShareTest(unittest.TestCase):
         # # # Read file directly as binary
         self.assertEqual(self.share.read_binary(single_file), b'Torsk')
 
-        # # six -> ensure py2/3 compatibility
-        write_file = 'write_test_sftp_idmc'
-
         test_string = 'Hello There'
         test_num = 42342342
         test_float = 3434.231
+
+        write_file = 'write_test_sftp_idmc'
 
         self.share.remove(write_file)
         self.share.write(write_file, test_string)
@@ -250,15 +252,15 @@ class IDMCSftpShareTest(unittest.TestCase):
         self.assertIn(six.text_type(test_float), self.share.read(write_file))
 
         # Writing binary to a file
-        binary_file = 'binary_test'
+        binary_file = 'binary_test_sftp_idmc'
         self.share.remove(binary_file)
         test_binary = b'Hello again'
         test_b_num = six.int2byte(255)
         self.share.write(binary_file, test_binary)
         self.share.write(binary_file, test_b_num)
 
-        self.assertIn(test_binary, self.share.read_binary('binary_test'))
-        self.assertIn(test_b_num, self.share.read_binary('binary_test'))
+        self.assertIn(test_binary, self.share.read_binary(binary_file))
+        self.assertIn(test_b_num, self.share.read_binary(binary_file))
 
         # Read 100 mb image
         img = self.share.read_binary('kmeans.tif')
