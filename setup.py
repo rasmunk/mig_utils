@@ -21,7 +21,8 @@ setup(
     install_requires=[
         'fs.sshfs>=0.8.0',
         'fs>=2.0.7',
-        'six>=1.10'
+        'six>=1.10',
+        'ssh2-python>=0.13.0.post2'
     ],
     tests_require=[
         'pytest',

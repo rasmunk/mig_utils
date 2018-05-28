@@ -177,13 +177,13 @@ class SFTPStore(DataStore):
                 fh.write(six.b(str(data)))
 
 
-# class AsyncSFTPStore(SFTPStore):
-#
-#     def __init__(self, username=None, password=None):
-#         super(AsyncSFTPStore, self).__init__(username, password)
-#
-#     async def open(self, filename, flag='r'):
-#         pass
+class AsyncSFTPStore(SFTPStore):
+
+    def __init__(self, username=None, password=None):
+        super(AsyncSFTPStore, self).__init__(username, password)
+
+    async def open(self, filename, flag='r'):
+        pass
 
 
 class ERDA:
