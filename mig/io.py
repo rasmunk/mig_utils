@@ -12,7 +12,6 @@ from ssh2.sftp import LIBSSH2_FXF_READ, LIBSSH2_FXF_WRITE, LIBSSH2_FXF_CREAT, \
 @six.add_metaclass(ABCMeta)
 class DataStore():
     _client = None
-    _target = ""
 
     def __init__(self, client):
         """
@@ -45,11 +44,12 @@ class DataStore():
 
 class SSHFSStore(DataStore):
 
-    def __init__(self, username=None, password=None):
+    def __init__(self, host=None, username=None, password=None):
+        assert host is not None
         assert username is not None
         assert password is not None
         client = fs.open_fs(
-            "ssh://" + username + ":" + password + self._target)
+            "ssh://" + username + ":" + password + host)
         super(SSHFSStore, self).__init__(client)
 
     def geturl(self, path):
@@ -146,14 +146,13 @@ class SSHFSStore(DataStore):
 
 class SFTPStore(DataStore):
 
-    def __init__(self, username=None, password=None):
+    def __init__(self, host=None, username=None, password=None):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.connect((self._target, 22))
+        sock.connect((host, 22))
         s = Session()
         s.handshake(sock)
         s.userauth_password(username, password)
         s.open_session()
-        s.set_blocking(True)
         client = s.sftp_init()
         super(SFTPStore, self).__init__(client=client)
 
@@ -172,12 +171,14 @@ class SFTPStore(DataStore):
             if flag == 'w':
                 w_flags = LIBSSH2_FXF_CREAT | LIBSSH2_FXF_WRITE
             elif flag == 'a':
-                w_flags = LIBSSH2_FXF_CREAT | LIBSSH2_FXF_WRITE | LIBSSH2_FXF_APPEND
-            mode = LIBSSH2_SFTP_S_IRUSR | \
-                LIBSSH2_SFTP_S_IWUSR | \
-                LIBSSH2_SFTP_S_IRGRP | \
-                LIBSSH2_SFTP_S_IROTH
-            return self._client.open(six.text_type(path), w_flags, mode)
+                w_flags = LIBSSH2_FXF_CREAT | LIBSSH2_FXF_WRITE | \
+                          LIBSSH2_FXF_APPEND
+
+            #mode = LIBSSH2_SFTP_S_IRUSR | \
+            #    LIBSSH2_SFTP_S_IWUSR | \
+            #    LIBSSH2_SFTP_S_IRGRP | \
+            #    LIBSSH2_SFTP_S_IROTH
+            return self._client.open(six.text_type(path), w_flags, 644)
 
     def list(self, path='.'):
         """
@@ -238,8 +239,7 @@ class IDMC:
 class ERDASftpShare(SFTPStore):
 
     def __init__(self, username=None, password=None):
-        self._target = ERDA.url
-        super(ERDASftpShare, self).__init__(username, password)
+        super(ERDASftpShare, self).__init__(ERDA.url, username, password)
 
 
 # TODO -> cleanup duplication
@@ -252,8 +252,9 @@ class ERDASSHFSShare(SSHFSStore):
         an overview over your sharelinks can be found at
         https://erda.dk/wsgi-bin/sharelink.py.
         """
-        self._target = "@" + ERDA.url + "/"
-        super(ERDASSHFSShare, self).__init__(username=share_link, password=share_link)
+        host = "@" + ERDA.url + "/"
+        super(ERDASSHFSShare, self).__init__(host=host, username=share_link,
+                                             password=share_link)
 
 
 class ERDAShare(ERDASftpShare):
@@ -272,15 +273,15 @@ class IDMCSSHFSShare(SSHFSStore):
         an overview over your sharelinks can be found at,
         https://erda.dk/wsgi-bin/sharelink.py.
         """
-        self._target = "@" + IDMC.url + "/"
-        super(IDMCSSHFSShare, self).__init__(username=share_link, password=share_link)
+        host = "@" + IDMC.url + "/"
+        super(IDMCSSHFSShare, self).__init__(host=host, username=share_link,
+                                             password=share_link)
 
 
 class IDMCSftpShare(SFTPStore):
 
     def __init__(self, username=None, password=None):
-        self._target = IDMC.url
-        super(IDMCSftpShare, self).__init__(username, password)
+        super(IDMCSftpShare, self).__init__(IDMC.url, username, password)
 
 
 class IDMCShare(IDMCSftpShare):

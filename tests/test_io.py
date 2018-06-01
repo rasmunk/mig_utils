@@ -3,6 +3,7 @@ import sys
 import os
 import six
 import _io
+import time
 from random import random
 from ssh2.sftp_handle import SFTPHandle
 from mig.io import ERDASSHFSShare, ERDASftpShare, \
@@ -149,6 +150,12 @@ class IDMCSSHFSShareTest(unittest.TestCase):
         self.assertIn(test_binary, self.share.read_binary(self.binary_file))
         self.assertIn(test_b_num, self.share.read_binary(self.binary_file))
 
+        # start = time.time()
+        # img = self.share.read_binary('kmeans.tif')
+        # stop = time.time()
+        # size = sys.getsizeof(img)
+        # print("mb/s {}".format(size / (stop - start)))
+
 
 class ERDASFTPShareTest(unittest.TestCase):
     share = None
@@ -199,8 +206,10 @@ class ERDASFTPShareTest(unittest.TestCase):
             w_file.write(six.b(str(test_float)))
 
         self.assertIn(test_string, self.share.read(self.write_file))
-        self.assertIn(six.text_type(test_num), self.share.read(self.write_file))
-        self.assertIn(six.text_type(test_float), self.share.read(self.write_file))
+        self.assertIn(six.text_type(test_num),
+                      self.share.read(self.write_file))
+        self.assertIn(six.text_type(test_float),
+                      self.share.read(self.write_file))
 
         # Writing binary to a file
         self.share.remove(self.binary_file)
@@ -228,13 +237,15 @@ class IDMCSftpShareTest(unittest.TestCase):
         self.seed = str(random())[2:10]
         self.tmp_file = "".join(["tmp", self.seed])
         self.write_file = "".join(["write_test", self.seed])
-        self.binary_file = "".join(['binary_test', self.seed])
+        self.binary_file = "".join(["binary_test", self.seed])
         self.img = "kmeans.tif"
+        self.write_image = "".join(["kmeans_write.tiff", self.seed])
 
     def tearDown(self):
         self.share.remove(self.tmp_file)
         self.share.remove(self.write_file)
         self.share.remove(self.binary_file)
+        self.share.remove(self.write_image)
         self.share = None
 
     def test_share(self):
@@ -267,8 +278,10 @@ class IDMCSftpShareTest(unittest.TestCase):
             w_file.write(six.b(str(test_float)))
 
         self.assertIn(test_string, self.share.read(self.write_file))
-        self.assertIn(six.text_type(test_num), self.share.read(self.write_file))
-        self.assertIn(six.text_type(test_float), self.share.read(self.write_file))
+        self.assertIn(six.text_type(test_num),
+                      self.share.read(self.write_file))
+        self.assertIn(six.text_type(test_float),
+                      self.share.read(self.write_file))
 
         # Writing binary to a file
         self.share.remove(self.binary_file)
@@ -282,5 +295,25 @@ class IDMCSftpShareTest(unittest.TestCase):
         self.assertIn(test_b_num, self.share.read_binary(self.binary_file))
 
         # Read 100 mb image
-        img = self.share.read_binary('kmeans.tif')
+        img = self.share.read_binary(self.img)
+        mb = sys.getsizeof(img) * pow(10, -6)
         self.assertGreaterEqual(sys.getsizeof(img), 133246888)
+
+        # write 100 mb image
+        start = time.time()
+        self.share.write(self.write_file, img, 'w')
+        stop = time.time()
+        new_image = self.share.read_binary(self.write_file)
+        self.assertGreaterEqual(sys.getsizeof(new_image), 133246888)
+        print("write mb/s {}".format(mb / (stop - start)))
+        new_image = None
+        self.share.remove(self.write_file)
+        self.assertNotIn(self.write_file, self.share.list())
+
+        start = time.time()
+        with self.share.open(self.write_file, 'w') as fh:
+            fh.write(img)
+        stop = time.time()
+        new_image = self.share.read_binary(self.write_file)
+        self.assertGreaterEqual(sys.getsizeof(new_image), 133246888)
+        print("write mb/s {}".format(mb / (stop - start)))
