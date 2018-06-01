@@ -7,10 +7,10 @@ import time
 import random
 import sys
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from skimage.io import imread, imsave
 from PIL import Image
-from mig.io import IDMCShare
+from mig.io import IDMCShare, ERDAShare, SFTPStore
 
 
 def foam_labelling(stack_image):
@@ -63,26 +63,43 @@ def foam_labelling(stack_image):
 if __name__ == "__main__":
     start = time.time()
     load_start = time.time()
-    share = IDMCShare('K2wzxDcEBm')
-    img = imread('max_data/rec_8bit_ph03_cropC_kmeans_scale510.tif')
+    share = SFTPStore()
+    print(share.list())
+    #img = share.read_binary('big_image.tif')
+    #with open('local_big_image', 'wb') as fh:
+    #    fh.write(share.read_binary('big_image.tif'))
+    #img = imread('max_data/rec_8bit_ph03_cropC_kmeans_scale510.tif')
     #stack_image = share.read_binary('rec_8bit_ph03_cropC_kmeans_scale510.tif')
     #img = Image.frombytes(mode='L', size=(510, 510), data=stack_image)
     #img = np.array(img)
     #img = np.swapaxes(img, -1, -3)
     #img = np.swapaxes(img, -2, -3)
 
-    load_stop = time.time()
-    exe_start = time.time()
-    foam_labelling(img)
-    exe_stop = time.time()
-    stop = time.time()
+    start_upload = time.time()
+    data = []
+    with open('local_big_image', 'rb') as local_fh:
+        for f_data in local_fh:
+            data.append(f_data)
 
-    load_time = str(load_stop - load_start)
-    exe_time = str(exe_stop - exe_start)
-    run_time = str(stop - start)
-    img_size = str(sys.getsizeof(img) * pow(10, -6))
-
-    with open("foam_times" + str(random.random())[10:], 'a') as fh:
-        fh.write("load_time,exe_time,run_time,img_size\n")
-        fh.write(",".join([load_time, exe_time, run_time, img_size]))
+    share.write('new_image_x', b''.join(data), 'w')
+    # with open('local_big_image', 'rb') as local_fh, share.open('upload_big_image', 'w') as remote_fh:
+    #     for data in local_fh:
+    #         remote_fh.write(data)
+    stop_upload = time.time()
+    print("Upload time {}".format(stop_upload-start_upload))
+    print("hsdfsdf")
+    # load_stop = time.time()
+    # exe_start = time.time()
+    # #foam_labelling(img)
+    # exe_stop = time.time()
+    # stop = time.time()
+    #
+    # load_time = str(load_stop - load_start)
+    # exe_time = str(exe_stop - exe_start)
+    # run_time = str(stop - start)
+    # img_size = str(sys.getsizeof(img) * pow(10, -6))
+    #
+    # with open("foam_times" + str(random.random())[10:], 'a') as fh:
+    #     fh.write("load_time,exe_time,run_time,img_size\n")
+    #     fh.write(",".join([load_time, exe_time, run_time, img_size]))
 
