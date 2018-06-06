@@ -34,7 +34,7 @@ class DataStore():
         pass
 
     @abstractmethod
-    def write(self, path, data, flag='a'):
+    def write(self, path, data, flag='w'):
         pass
 
     @abstractmethod
@@ -156,6 +156,18 @@ class SFTPStore(DataStore):
         client = s.sftp_init()
         super(SFTPStore, self).__init__(client=client)
 
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return self.read()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
     def open(self, path, flag='r'):
         """
         :param path: path to file on the sftp end
@@ -163,9 +175,12 @@ class SFTPStore(DataStore):
         :return: SFTPHandle, https://github.com/ParallelSSH/ssh2-python
         /blob/master/ssh2/sftp_handle.pyx
         """
+        self.path = six.text_type(path)
+        # Always binary
+        flag.strip('b')
         if flag == 'r':
-            return self._client.open(six.text_type(path), LIBSSH2_FXF_READ,
-                                     LIBSSH2_SFTP_S_IWUSR)
+            self.fh = self._client.open(six.text_type(self.path), LIBSSH2_FXF_READ,
+                              LIBSSH2_SFTP_S_IWUSR)
         else:
             w_flags = None
             if flag == 'w':
@@ -173,12 +188,15 @@ class SFTPStore(DataStore):
             elif flag == 'a':
                 w_flags = LIBSSH2_FXF_CREAT | LIBSSH2_FXF_WRITE | \
                           LIBSSH2_FXF_APPEND
+            mode = LIBSSH2_SFTP_S_IRUSR | \
+                LIBSSH2_SFTP_S_IWUSR | \
+                LIBSSH2_SFTP_S_IRGRP | \
+                LIBSSH2_SFTP_S_IROTH
+            self.fh = self._client.open(self.path, w_flags, mode)
+        return self
 
-            #mode = LIBSSH2_SFTP_S_IRUSR | \
-            #    LIBSSH2_SFTP_S_IWUSR | \
-            #    LIBSSH2_SFTP_S_IRGRP | \
-            #    LIBSSH2_SFTP_S_IROTH
-            return self._client.open(six.text_type(path), w_flags, 644)
+    def close(self):
+        self.fh.close()
 
     def list(self, path='.'):
         """
@@ -188,14 +206,15 @@ class SFTPStore(DataStore):
         with self._client.opendir(six.text_type(path)) as fh:
             return [name.decode('utf-8') for size, name, attrs in fh.readdir()]
 
-    def read(self, path):
+    def read(self, n: int = -1):
         """
         :param path: path to the file that should be read
+        :param n: amount of bytes to be read
         :return: the content of path, decoded to utf-8 string
         """
-        return self.read_binary(six.text_type(path)).decode('utf-8')
+        return self.read_binary(n)
 
-    def write(self, path, data, flag='a'):
+    def write(self, path, data, flag='w'):
         """
         :param path: path to the file that should be created/written to
         :param data: data that should be written to the file, expects binary or str
@@ -210,22 +229,46 @@ class SFTPStore(DataStore):
             else:
                 fh.write(six.b(str(data)))
 
+    def seek(self, offset, whence):
+        """ Seek file to a given offset
+        :param offset: amount of bytes to skip
+        :return: None
+        """
+        self.fh.seek64(offset)
+
     def remove(self, path):
         """
         :param path: path to the file that should be removed
         """
         self._client.unlink(six.text_type(path))
 
-    def read_binary(self, path):
+    def read_binary(self, n: int = -1):
         """
         :param path: path to the file that should be read
+        :param n: amount of bytes to be read
         :return: a binary string of the content within in file
         """
+        # print("n size: {}".format(n))
         data = []
-        with self.open(six.text_type(path)) as fh:
-            for size, chunk in fh:
+        if n != -1:
+            data.append(self.fh.read(n)[1])
+        else:
+            for size, chunk in self.fh:
                 data.append(chunk)
+
+        # with self.open(six.text_type(self.path)) as fh:
+        #     if n != -1:
+        #         data.append(fh.read(n))
+        #     else:
+        #         for size, chunk in fh:
+        #             data.append(chunk)
         return b"".join(data)
+
+    def tell(self):
+        """ Get the current file handle offset
+        :return: int
+        """
+        return self.fh.tell64()
 
 
 class ERDA:
