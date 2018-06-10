@@ -169,6 +169,9 @@ class ERDASFTPShareTest(unittest.TestCase):
         self.share.remove(self.write_file)
         self.share.remove(self.binary_file)
         self.share.remove(self.write_image)
+        self.assertNotIn(self.tmp_file, self.share.list())
+        self.assertNotIn(self.write_image, self.share.list())
+        self.assertNotIn(self.binary_file, self.share.list())
         self.assertNotIn(self.write_image, self.share.list())
         self.share = None
 
@@ -261,6 +264,10 @@ class IDMCSftpShareTest(unittest.TestCase):
         self.share.remove(self.write_file)
         self.share.remove(self.binary_file)
         self.share.remove(self.write_image)
+        self.assertNotIn(self.tmp_file, self.share.list())
+        self.assertNotIn(self.write_image, self.share.list())
+        self.assertNotIn(self.binary_file, self.share.list())
+        self.assertNotIn(self.write_image, self.share.list())
         self.share = None
 
     def test_share(self):
@@ -331,4 +338,3 @@ class IDMCSftpShareTest(unittest.TestCase):
             with self.share.open(self.write_image, 'rb') as new_b_file:
                 new_image = new_b_file.read()
                 self.assertGreaterEqual(sys.getsizeof(new_image), 133246888)
-
