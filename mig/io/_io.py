@@ -30,15 +30,27 @@ class DataStore():
         pass
 
     @abstractmethod
-    def read(self, path):
-        pass
-
-    @abstractmethod
-    def write(self, path, data, flag='w'):
-        pass
-
-    @abstractmethod
     def remove(self, path):
+        pass
+
+    @abstractmethod
+    def close(self):
+        pass
+
+
+@six.add_metaclass(ABCMeta)
+class FileHandle():
+
+    @abstractmethod
+    def read(self):
+        pass
+
+    @abstractmethod
+    def write(self, data):
+        pass
+
+    @abstractmethod
+    def close(self):
         pass
 
 
@@ -122,7 +134,7 @@ class SSHFSStore(DataStore):
 
     def read_binary(self, path):
         """
-        :param file:
+        :param path:
         File to be read
         :return:
         a binary of the content within file
@@ -143,6 +155,93 @@ class SSHFSStore(DataStore):
         except ResourceNotFound:
             return False
 
+    def close(self):
+        self._client.close()
+
+
+class SFTPFileHandle(FileHandle):
+
+    def __init__(self, fh, name, flag):
+        """
+        :param fh: Expects a PySFTPHandle
+        """
+        self.fh = fh
+        self.name = name
+        self.flag = flag
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        return self.read()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.close()
+
+    def close(self):
+        """
+        Close the passed PySFTPHandles
+        :return:
+        """
+        self.fh.close()
+
+    def read(self, n: int = -1):
+        """
+        :param n: amount of bytes to be read, defaults to the entire file
+        :return: the content of path, decoded to utf-8 string
+        """
+        assert 'r' in self.flag
+        if 'b' in self.flag:
+            return self.read_binary(n)
+        else:
+            result = self.read_binary(n).decode('utf-8')
+            return result
+
+    def write(self, data):
+        """
+        :param path: path to the file that should be created/written to
+        :param data: data that should be written to the file, expects binary or str
+        :param flag: write mode
+        :return:
+        """
+        assert 'w' in self.flag or 'a' in self.flag
+        if type(data) == bytes:
+            self.fh.write(data)
+        elif type(data) == str:
+            self.fh.write(six.b(data))
+        else:
+            self.fh.write(six.b(str(data)))
+
+    def seek(self, offset):
+        """ Seek file to a given offset
+        :param offset: amount of bytes to skip
+        :return: None
+        """
+        self.fh.seek64(offset)
+
+    def read_binary(self, n: int = -1):
+        """
+        :param n: amount of bytes to be read
+        :return: a binary string of the content within in file
+        """
+        data = []
+        if n != -1:
+            # 1, because pysftphandle returns an array -> 1 = data
+            data.append(self.fh.read(n)[1])
+        else:
+            for size, chunk in self.fh:
+                data.append(chunk)
+        return b"".join(data)
+
+    def tell(self):
+        """ Get the current file handle offset
+        :return: int
+        """
+        return self.fh.tell64()
+
 
 class SFTPStore(DataStore):
 
@@ -155,12 +254,6 @@ class SFTPStore(DataStore):
         s.open_session()
         client = s.sftp_init()
         super(SFTPStore, self).__init__(client=client)
-
-    def __iter__(self):
-        return self
-
-    def __next__(self):
-        return self.read()
 
     def __enter__(self):
         return self
@@ -175,28 +268,25 @@ class SFTPStore(DataStore):
         :return: SFTPHandle, https://github.com/ParallelSSH/ssh2-python
         /blob/master/ssh2/sftp_handle.pyx
         """
-        self.path = six.text_type(path)
-        # Always binary
-        flag.strip('b')
-        if flag == 'r':
-            self.fh = self._client.open(six.text_type(self.path), LIBSSH2_FXF_READ,
-                              LIBSSH2_SFTP_S_IWUSR)
+
+        if flag == 'r' or flag == 'rb':
+            fh = self._client.open(six.text_type(path), LIBSSH2_FXF_READ,
+                                   LIBSSH2_SFTP_S_IWUSR)
         else:
             w_flags = None
-            if flag == 'w':
+            if flag == 'w' or flag == 'wb':
                 w_flags = LIBSSH2_FXF_CREAT | LIBSSH2_FXF_WRITE
-            elif flag == 'a':
+            elif flag == 'a' or flag == 'ab':
                 w_flags = LIBSSH2_FXF_CREAT | LIBSSH2_FXF_WRITE | \
                           LIBSSH2_FXF_APPEND
             mode = LIBSSH2_SFTP_S_IRUSR | \
-                LIBSSH2_SFTP_S_IWUSR | \
-                LIBSSH2_SFTP_S_IRGRP | \
-                LIBSSH2_SFTP_S_IROTH
-            self.fh = self._client.open(self.path, w_flags, mode)
-        return self
-
-    def close(self):
-        self.fh.close()
+                   LIBSSH2_SFTP_S_IWUSR | \
+                   LIBSSH2_SFTP_S_IRGRP | \
+                   LIBSSH2_SFTP_S_IROTH
+            fh = self._client.open(six.text_type(path), w_flags, mode)
+        assert fh is not None
+        handle = SFTPFileHandle(fh, path, flag)
+        return handle
 
     def list(self, path='.'):
         """
@@ -206,69 +296,14 @@ class SFTPStore(DataStore):
         with self._client.opendir(six.text_type(path)) as fh:
             return [name.decode('utf-8') for size, name, attrs in fh.readdir()]
 
-    def read(self, n: int = -1):
-        """
-        :param path: path to the file that should be read
-        :param n: amount of bytes to be read
-        :return: the content of path, decoded to utf-8 string
-        """
-        return self.read_binary(n)
-
-    def write(self, path, data, flag='w'):
-        """
-        :param path: path to the file that should be created/written to
-        :param data: data that should be written to the file, expects binary or str
-        :param flag: write mode
-        :return:
-        """
-        with self.open(six.text_type(path), flag) as fh:
-            if type(data) == bytes:
-                fh.write(data)
-            elif type(data) == str:
-                fh.write(six.b(data))
-            else:
-                fh.write(six.b(str(data)))
-
-    def seek(self, offset, whence):
-        """ Seek file to a given offset
-        :param offset: amount of bytes to skip
-        :return: None
-        """
-        self.fh.seek64(offset)
-
     def remove(self, path):
         """
         :param path: path to the file that should be removed
         """
         self._client.unlink(six.text_type(path))
 
-    def read_binary(self, n: int = -1):
-        """
-        :param path: path to the file that should be read
-        :param n: amount of bytes to be read
-        :return: a binary string of the content within in file
-        """
-        # print("n size: {}".format(n))
-        data = []
-        if n != -1:
-            data.append(self.fh.read(n)[1])
-        else:
-            for size, chunk in self.fh:
-                data.append(chunk)
-
-        # with self.open(six.text_type(self.path)) as fh:
-        #     if n != -1:
-        #         data.append(fh.read(n))
-        #     else:
-        #         for size, chunk in fh:
-        #             data.append(chunk)
-        return b"".join(data)
-
-    def tell(self):
-        """ Get the current file handle offset
-        :return: int
-        """
-        return self.fh.tell64()
+    def close(self):
+        self._client = None
 
 
 class ERDA:
@@ -303,6 +338,12 @@ class ERDASSHFSShare(SSHFSStore):
 class ERDAShare(ERDASftpShare):
 
     def __init__(self, share_link):
+        """
+        :param share_link:
+        This is the sharelink ID that is used to access the datastore,
+        an overview over your sharelinks can be found at
+        https://erda.dk/wsgi-bin/sharelink.py.
+        """
         super(ERDAShare, self).__init__(share_link, share_link)
 
 

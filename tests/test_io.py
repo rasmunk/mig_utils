@@ -5,9 +5,8 @@ import six
 import _io
 import time
 from random import random
-from ssh2.sftp_handle import SFTPHandle
 from mig.io import ERDASSHFSShare, ERDASftpShare, \
-    IDMCSSHFSShare, IDMCSftpShare
+    IDMCSSHFSShare, IDMCSftpShare, SFTPFileHandle
 
 # Test input
 try:
@@ -170,25 +169,33 @@ class ERDASFTPShareTest(unittest.TestCase):
         self.share.remove(self.write_file)
         self.share.remove(self.binary_file)
         self.share.remove(self.write_image)
+        self.assertNotIn(self.write_image, self.share.list())
         self.share = None
 
     def test_share(self):
-        self.share.write(self.tmp_file, six.text_type("sddsfsf"))
+        tmp_share = self.share.open(self.tmp_file, 'w')
+        tmp_share.write(six.text_type("sddsfsf"))
+        tmp_share.close()
         self.assertIn(self.tmp_file, self.share.list())
+
         # Read file directly as string
-        self.assertEqual(self.share.read(self.tmp_file), "sddsfsf")
+        tmp_share = self.share.open(self.tmp_file, 'r')
+        self.assertEqual(tmp_share.read(), "sddsfsf")
+        tmp_share.close()
+
         # Read file directly as binary
-        self.assertEqual(self.share.read_binary(self.tmp_file), b'sddsfsf')
+        tmp_share = self.share.open(self.tmp_file, 'rb')
+        self.assertEqual(tmp_share.read(), b'sddsfsf')
+        tmp_share.close()
 
-        # Get a _io.TextIOWrapper object with automatic close
-
+        # Get a SFTPHandle object with automatic close
         with self.share.open(self.tmp_file, 'r') as tmp:
-            self.assertEqual(tmp.read()[1].decode('utf-8'), "sddsfsf")
+            self.assertEqual(tmp.read(), "sddsfsf")
 
         # Get a default SFTPHandle object with manual lifetime
         fh = self.share.open(self.tmp_file, 'r')
-        self.assertIsInstance(fh, SFTPHandle)
-        self.assertEqual(fh.read()[1].decode('utf-8'), "sddsfsf")
+        self.assertIsInstance(fh, SFTPFileHandle)
+        self.assertEqual(fh.read(), "sddsfsf")
         fh.close()
 
         # Writing strings to a file
@@ -201,45 +208,38 @@ class ERDASFTPShareTest(unittest.TestCase):
             w_file.write(six.b(str(test_num)))
             w_file.write(six.b(str(test_float)))
 
-        self.assertIn(test_string, self.share.read(self.write_file))
-        self.assertIn(six.text_type(test_num),
-                      self.share.read(self.write_file))
-        self.assertIn(six.text_type(test_float),
-                      self.share.read(self.write_file))
+        with self.share.open(self.write_file, 'r') as w_file:
+            f_content = w_file.read()
+            self.assertIn(test_string, f_content)
+            self.assertIn(six.text_type(test_num), f_content)
+            self.assertIn(six.text_type(test_float), f_content)
 
         # Writing binary to a file
         test_binary = b'Hello again'
         test_b_num = six.int2byte(255)
-        with self.share.open(self.binary_file, 'a') as b_file:
+        with self.share.open(self.binary_file, 'ab') as b_file:
             b_file.write(test_binary)
             b_file.write(test_b_num)
 
-        self.assertIn(test_binary, self.share.read_binary(self.binary_file))
-        self.assertIn(test_b_num, self.share.read_binary(self.binary_file))
+        b_file = self.share.open(self.binary_file, 'rb')
+        f_content = b_file.read()
+        self.assertIn(test_binary, f_content)
+        self.assertIn(test_b_num, f_content)
+        b_file.close()
 
         # Read 100 mb image
-        img = self.share.read_binary(self.img)
-        mb = sys.getsizeof(img) * pow(10, -6)
-        self.assertGreaterEqual(sys.getsizeof(img), 133246888)
+        with self.share.open(self.img, 'rb') as b_file:
+            img = b_file.read()
+            self.assertGreaterEqual(sys.getsizeof(img), 133246888)
 
-        # write 100 mb image
-        start = time.time()
-        self.share.write(self.write_image, img)
-        stop = time.time()
-        new_image = self.share.read_binary(self.write_image)
-        self.assertGreaterEqual(sys.getsizeof(new_image), 133246888)
-        print("write mb/s {}".format(mb / (stop - start)))
-        new_image = None
-        self.share.remove(self.write_image)
-        self.assertNotIn(self.write_image, self.share.list())
+            # write 100 mb image
+            with self.share.open(self.write_image, 'wb') as new_b_file:
+                new_b_file.write(img)
 
-        start = time.time()
-        with self.share.open(self.write_image, 'w') as fh:
-            fh.write(img)
-        stop = time.time()
-        new_image = self.share.read_binary(self.write_image)
-        self.assertGreaterEqual(sys.getsizeof(new_image), 133246888)
-        print("write mb/s {}".format(mb / (stop - start)))
+            # check that it is written
+            with self.share.open(self.write_image, 'rb') as new_b_file:
+                new_image = new_b_file.read()
+                self.assertGreaterEqual(sys.getsizeof(new_image), 133246888)
 
 
 class IDMCSftpShareTest(unittest.TestCase):
@@ -264,22 +264,29 @@ class IDMCSftpShareTest(unittest.TestCase):
         self.share = None
 
     def test_share(self):
-        self.share.write(self.tmp_file, six.text_type("sddsfsf"))
+        tmp_share = self.share.open(self.tmp_file, 'w')
+        tmp_share.write(six.text_type("sddsfsf"))
+        tmp_share.close()
         self.assertIn(self.tmp_file, self.share.list())
+
         # Read file directly as string
-        self.assertEqual(self.share.read(self.tmp_file), "sddsfsf")
+        tmp_share = self.share.open(self.tmp_file, 'r')
+        self.assertEqual(tmp_share.read(), "sddsfsf")
+        tmp_share.close()
+
         # Read file directly as binary
-        self.assertEqual(self.share.read_binary(self.tmp_file), b'sddsfsf')
+        tmp_share = self.share.open(self.tmp_file, 'rb')
+        self.assertEqual(tmp_share.read(), b'sddsfsf')
+        tmp_share.close()
 
-        # Get a _io.TextIOWrapper object with automatic close
-
+        # Get a SFTPHandle object with automatic close
         with self.share.open(self.tmp_file, 'r') as tmp:
-            self.assertEqual(tmp.read()[1].decode('utf-8'), "sddsfsf")
+            self.assertEqual(tmp.read(), "sddsfsf")
 
         # Get a default SFTPHandle object with manual lifetime
         fh = self.share.open(self.tmp_file, 'r')
-        self.assertIsInstance(fh, SFTPHandle)
-        self.assertEqual(fh.read()[1].decode('utf-8'), "sddsfsf")
+        self.assertIsInstance(fh, SFTPFileHandle)
+        self.assertEqual(fh.read(), "sddsfsf")
         fh.close()
 
         # Writing strings to a file
@@ -292,42 +299,36 @@ class IDMCSftpShareTest(unittest.TestCase):
             w_file.write(six.b(str(test_num)))
             w_file.write(six.b(str(test_float)))
 
-        self.assertIn(test_string, self.share.read(self.write_file))
-        self.assertIn(six.text_type(test_num),
-                      self.share.read(self.write_file))
-        self.assertIn(six.text_type(test_float),
-                      self.share.read(self.write_file))
+        with self.share.open(self.write_file, 'r') as w_file:
+            f_content = w_file.read()
+            self.assertIn(test_string, f_content)
+            self.assertIn(six.text_type(test_num), f_content)
+            self.assertIn(six.text_type(test_float), f_content)
 
         # Writing binary to a file
         test_binary = b'Hello again'
         test_b_num = six.int2byte(255)
-        with self.share.open(self.binary_file, 'a') as b_file:
+        with self.share.open(self.binary_file, 'ab') as b_file:
             b_file.write(test_binary)
             b_file.write(test_b_num)
 
-        self.assertIn(test_binary, self.share.read_binary(self.binary_file))
-        self.assertIn(test_b_num, self.share.read_binary(self.binary_file))
+        b_file = self.share.open(self.binary_file, 'rb')
+        f_content = b_file.read()
+        self.assertIn(test_binary, f_content)
+        self.assertIn(test_b_num, f_content)
+        b_file.close()
 
         # Read 100 mb image
-        img = self.share.read_binary(self.img)
-        mb = sys.getsizeof(img) * pow(10, -6)
-        self.assertGreaterEqual(sys.getsizeof(img), 133246888)
+        with self.share.open(self.img, 'rb') as b_file:
+            img = b_file.read()
+            self.assertGreaterEqual(sys.getsizeof(img), 133246888)
 
-        # write 100 mb image
-        start = time.time()
-        self.share.write(self.write_image, img)
-        stop = time.time()
-        new_image = self.share.read_binary(self.write_image)
-        self.assertGreaterEqual(sys.getsizeof(new_image), 133246888)
-        print("write mb/s {}".format(mb / (stop - start)))
-        new_image = None
-        self.share.remove(self.write_image)
-        self.assertNotIn(self.write_image, self.share.list())
+            # write 100 mb image
+            with self.share.open(self.write_image, 'wb') as new_b_file:
+                new_b_file.write(img)
 
-        start = time.time()
-        with self.share.open(self.write_image, 'w') as fh:
-            fh.write(img)
-        stop = time.time()
-        new_image = self.share.read_binary(self.write_image)
-        self.assertGreaterEqual(sys.getsizeof(new_image), 133246888)
-        print("write mb/s {}".format(mb / (stop - start)))
+            # check that it is written
+            with self.share.open(self.write_image, 'rb') as new_b_file:
+                new_image = new_b_file.read()
+                self.assertGreaterEqual(sys.getsizeof(new_image), 133246888)
+

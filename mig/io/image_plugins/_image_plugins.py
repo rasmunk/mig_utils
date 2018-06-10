@@ -3,6 +3,7 @@ import numpy as np
 from PIL import Image
 from skimage.io._plugins.pil_plugin import _palette_is_grayscale
 from skimage.io import imsave
+import asyncio
 
 
 def imread(fname, dtype=None, img_num=None, **kwargs):
@@ -38,16 +39,9 @@ def imread(fname, dtype=None, img_num=None, **kwargs):
         return pil_to_ndarray(im, dtype=dtype, img_num=img_num)
 
 
-# TODO support img_num access
-def get_frames(image):
-    frames = []
-    grayscale = None
-    i = 0
-    eof_pos = image.seek(0, 2).tell()
-    sof_pos = image.seek(0).tell()
-    print("start pos: {} end pos: {}".format(sof_pos, eof_pos))
-
-    while 1:
+async def get_frames(queue, image, start, stop):
+    i = start
+    while i < stop:
         try:
             image.seek(i)
         except EOFError:
@@ -90,11 +84,8 @@ def get_frames(image):
         else:
             frame = np.array(frame, dtype=dtype)
 
-        frames.append(frame)
-        i += 1
+        await queue.put(frame)
 
-        if img_num is not None:
-            break
 
 def pil_to_ndarray(image, dtype=None, img_num=None):
     """Import a PIL Image object to an ndarray, in memory.
@@ -115,8 +106,67 @@ def pil_to_ndarray(image, dtype=None, img_num=None):
                          'Please see documentation at: %s'
                          % (image.filename, pillow_error_message, site))
         raise ValueError(error_message)
-    print("hello")
-    frames = get_frames(image)
+
+    # loop = asyncio.get_event_loop()
+    # queue = asyncio.Queue(loop=loop)
+    # try:
+    #     loop.run_until_complete(asyncio.gather())
+    frames = []
+    i = 0
+    grayscale = None
+    while True:
+        try:
+            image.seek(i)
+        except EOFError:
+            break
+        frame = image
+
+        if img_num is not None and img_num != i:
+            image.getdata()[0]
+            i += 1
+            continue
+
+        if image.format == 'PNG' and image.mode == 'I' and dtype is None:
+            dtype = 'uint16'
+
+        if image.mode == 'P':
+            if grayscale is None:
+                grayscale = _palette_is_grayscale(image)
+
+            if grayscale:
+                frame = image.convert('L')
+            else:
+                if image.format == 'PNG' and 'transparency' in image.info:
+                    frame = image.convert('RGBA')
+                else:
+                    frame = image.convert('RGB')
+
+        elif image.mode == '1':
+            frame = image.convert('L')
+
+        elif 'A' in image.mode:
+            frame = image.convert('RGBA')
+
+        elif image.mode == 'CMYK':
+            frame = image.convert('RGB')
+
+        if image.mode.startswith('I;16'):
+            shape = image.size
+            dtype = '>u2' if image.mode.endswith('B') else '<u2'
+            if 'S' in image.mode:
+                dtype = dtype.replace('u', 'i')
+            frame = np.fromstring(frame.tobytes(), dtype)
+            frame.shape = shape[::-1]
+
+        else:
+            frame = np.array(frame, dtype=dtype)
+
+        frames.append(frame)
+        i += 1
+
+        if img_num is not None:
+            break
+
     if hasattr(image, 'fp') and image.fp:
         image.fp.close()
 

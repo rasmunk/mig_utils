@@ -8,6 +8,8 @@ import random
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from PIL import Image
+from skimage.io._plugins.pil_plugin import pil_to_ndarray
 from mig.io.image_plugins import imread
 from mig.io import IDMCShare, ERDAShare, SFTPStore, SSHFSStore
 
@@ -44,7 +46,24 @@ def foam_labelling(stack_image):
     # Feature properties
     from skimage.measure import regionprops
     props = regionprops(labeled_bubbles)
-    props[200].filled_area
+    props[100].filled_area
+
+
+def alu_foam_nucleation(stack_image):
+    nhight, ncols, nrows = stack_image.shape
+    row, col = np.ogrid[:nrows, :ncols]
+    print(stack_image.shape, stack_image.dtype)
+
+    fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(12, 4))
+    for i, (cax, clabel) in enumerate(zip([ax1, ax2, ax3], ['xy', 'zy', 'zx'])):
+        cax.imshow(np.sum(stack_image, i).squeeze(), interpolation='none', cmap='bone_r')
+        cax.set_title('%s Projection' % clabel)
+        cax.set_xlabel(clabel[0])
+        cax.set_ylabel(clabel[1])
+
+    plt.imshow(stack_image[100], cmap='bone')
+    plt.show()
+
 
 # # Read in data
 # in this case a 3D tif stack of tomographic slices
@@ -63,8 +82,16 @@ if __name__ == "__main__":
     start = time.time()
     load_start = time.time()
     share = SFTPStore("io.idmc.dk", username='K2wzxDcEBm', password='K2wzxDcEBm')
-    file = 'rec_8bit_ph03_cropC_kmeans_scale510.tif'
-    with share.open(file, 'r') as fh:
-        v = imread(fh)
+    file = 'max_data/rec_8bit_ph03_cropC_kmeans_scale510.tif'
+    with open(file, 'rb') as fh:
+        # v = imread(fh)
+        x = Image.open(fh)
+        v = pil_to_ndarray(x)
         plt.imshow(v[100], cmap='bone')
+        plt.show()
         # foam_labelling(v)
+
+    image = imread('max_data/098_rec06881_stack.tif')
+    # with open('max_data/rec_8bit_ph03_cropC_kmeans_scale510.tif', 'rb') as fh:
+    #     image = fh.read()
+    alu_foam_nucleation(image)
