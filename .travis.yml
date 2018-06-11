@@ -1,5 +1,5 @@
 language: python
-sudo: required
+required: sudo
 compiler:
 - gcc
 python:
@@ -7,6 +7,10 @@ python:
 - '3.5'
 - '3.6'
 - '3.6-dev'
+addons:
+  apt:
+    packages:
+      - cmake
 env:
   global:
   - secure: kW4STd+IVlRyFko8Xa77vKsq+g2AelScC5vHUkGKWSoEy2TFTFXvGEDJeppJ2PLi9Xz4Tp68pl2S2SsyiBA9bm+5gn7Ejgg+PsyYY2jdX53kGO555geE10CW8zInPrhYWhQViJ+7uk8jxYFvK3oCO3MAqWQwhtb9dH7vJ3Z8V6AoVzE1fOtbdtoF9ZqDMLzft1Y5fPUpCoHZCtmveJQVPzmJQRHHwXkHgUYvBoiCplBGotax+EwUNszBEps1Nukpb0vsozBZlrG4OLl3kyGQuFGecmzX8lr2nmpLcMCPOs0ntVjsRZF77ciCiJTrNOP3HCVgV6e7jpm4pkurffhKMOLBw00mGQzDww899jRIHhpAHRwCFGkfMuBgLrvFu+y1i0E0wrsLOIAXgBQ2CBi+xS4CExGMAK+hIezcIGJdtMDybKDXetMgd8+8Tw2RCPY3S2Pw0S+TirJCc37wbNlyLIHHPNzifITw5lTBiQZNyNKDzc482KCeIG5hHADC5O8InOloaY6Yyirh5eAoBTrBYuYRnHqwugWEta46SbKM0cT9bexWhDUfsbj9AecwlkZY5YvK8+fCAqJc0NKjs1+9lpfPJJYAa+rAC9JhoG/vE7NSS17d8qEHPrvbsTbSUppGL3jz0H0M83W0yZQoUMAhxh14EzWv4zJa3+Y2kWB1Hlc=
