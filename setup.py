@@ -22,6 +22,10 @@ setup(
         'fs.sshfs>=0.8.0',
         'fs>=2.0.7',
         'six>=1.10',
+        'ssh2-python-0.14.1devel'
+    ],
+    dependency_links=[
+        'git+git://github.com/ParallelSSH/ssh2-python.git@a8e0d5d5da7dfd00346628b01ca07c61a5e4de1c#egg=ssh2-python-0.14.1devel'
     ],
     tests_require=[
         'pytest',
