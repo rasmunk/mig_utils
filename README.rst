@@ -39,47 +39,49 @@ A likewise sharelink class (IdmcShare) exists for IDMC (https://idmc.dk)
 .. code-block:: python
 
   # First import the class that gives you access to the share in question*
-  from mig.io import ErdaShare
-  
-  # Initialize sharelink
-  share = ErdaShare('SHARELINKID')
-  
-  # List files/dirs in share
-  print(share.list())
-  
-  # Read file directly as string
-  print(share.read('tmp'))
-  
-  # Read file directly as binary
-  print(str(share.read_binary('tmp')))
-  
-  # Get a _io.TextIOWrapper object with automatic close
-  with share.open('tmp', 'r') as tmp:
-      print(tmp.read())
+  from mig.io import ERDAShare, IDMCShare
 
-  # Get a default _io.TextIOWrapper object with manual lifetime
-  file = share.open('tmp', 'r')
-  print(file.read())
-  file.close()
+    # ERDA Sharelink example
+    print("ERDA")
+    # Open connection to a sharelink
+    erda_share = ERDAShare('SHARELINKID')
+    # List files/dirs in share
+    print(erda_share.list())
 
-  # Writing strings to a file
-  test_string = "Hello There"
-  test_num = 42342342
-  test_float = 3434.231
+    with erda_share.open('tmp', 'w') as tmp:
+        tmp.write("sdfsfsf")
 
-  with share.open('write_test', 'w') as w_file:
-      w_file.write(test_string)
-      w_file.write(str(test_num))
-      w_file.write(str(test_float))
+    # Get a _io.SFTPFileHandle object with automatic close
+    with erda_share.open('tmp', 'r') as tmp:
+        print(tmp.read())
 
-  # Writing bytes to a file
-  test_binary = b'Hello again'
-  test_b_num = (255).to_bytes(1, byteorder=sys.byteorder)
-  with share.open('binary_test', 'wb') as b_file:
-      b_file.write(test_binary)
-      b_file.write(test_b_num)
+    # Get a default _io.SFTPFileHandle object with manual lifetime
+    file = erda_share.open('tmp', 'r')
+    print(file.read())
+    file.close()
 
-  # Removing files, likewise for dirs by using share.removedir(path)
-  share.remove('writes_test')
-  share.remove('binary_test')
+    # remove file
+    erda_share.remove('tmp')
+
+    print("\n")
+
+    # IDMC Sharelink example
+    print("IDMC")
+    # Open connection to a sharelink
+    idmc_share = IDMCShare('SHARELINKID')
+    # List files/dirs in share
+    print(idmc_share.list())
+
+    # write binary string
+    with idmc_share.open('b_tmp', 'wb') as b_tmp:
+        b_tmp.write(b'sadasdasd')
+
+    # Get a _io.SFTPFileHandle object with automatic close
+    with idmc_share.open('b_tmp', 'rb') as tmp:
+        print(tmp.read())
+
+    # Get a default _io.TextIOWrapper object with manual lifetime
+    file = idmc_share.open('b_tmp', 'rb')
+    print(file.read())
+    file.close()
 
