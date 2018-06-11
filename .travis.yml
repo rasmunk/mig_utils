@@ -1,5 +1,5 @@
 language: python
-required: sudo
+sudo: required
 compiler:
 - gcc
 python:
