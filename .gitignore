@@ -104,7 +104,12 @@ ENV/
 
 .idea/
 
+
+
 # secret test info
 sharelinks.txt
+
+# build stuff
+ssh2-python/
 benchmarks/
 .pytest_cache/
