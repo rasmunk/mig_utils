@@ -1,2 +1,2 @@
 from ._io import *
-from .image_plugins import *
+from ._async_io import *

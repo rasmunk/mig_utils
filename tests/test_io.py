@@ -3,7 +3,6 @@ import sys
 import os
 import six
 import _io
-import time
 from random import random
 from mig.io import ERDASSHFSShare, ERDASftpShare, \
     IDMCSSHFSShare, IDMCSftpShare, SFTPFileHandle

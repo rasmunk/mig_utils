@@ -264,11 +264,11 @@ class SFTPStore(DataStore):
     def open(self, path, flag='r'):
         """
         :param path: path to file on the sftp end
-        :param flag: open mode, either 'r'=read, w='write' or a='append'
+        :param flag: open mode, either 'r'=read, 'w'=write, 'a'=append
+        'rb'=read binary, 'wb'=write binary or 'ab'= append binary
         :return: SFTPHandle, https://github.com/ParallelSSH/ssh2-python
         /blob/master/ssh2/sftp_handle.pyx
         """
-
         if flag == 'r' or flag == 'rb':
             fh = self._client.open(six.text_type(path), LIBSSH2_FXF_READ,
                                    LIBSSH2_SFTP_S_IWUSR)
@@ -277,12 +277,9 @@ class SFTPStore(DataStore):
             if flag == 'w' or flag == 'wb':
                 w_flags = LIBSSH2_FXF_CREAT | LIBSSH2_FXF_WRITE
             elif flag == 'a' or flag == 'ab':
-                w_flags = LIBSSH2_FXF_CREAT | LIBSSH2_FXF_WRITE | \
-                          LIBSSH2_FXF_APPEND
-            mode = LIBSSH2_SFTP_S_IRUSR | \
-                   LIBSSH2_SFTP_S_IWUSR | \
-                   LIBSSH2_SFTP_S_IRGRP | \
-                   LIBSSH2_SFTP_S_IROTH
+                w_flags = LIBSSH2_FXF_CREAT | LIBSSH2_FXF_WRITE | LIBSSH2_FXF_APPEND
+            mode = LIBSSH2_SFTP_S_IRUSR | LIBSSH2_SFTP_S_IWUSR | LIBSSH2_SFTP_S_IRGRP |\
+                LIBSSH2_SFTP_S_IROTH
             fh = self._client.open(six.text_type(path), w_flags, mode)
         assert fh is not None
         handle = SFTPFileHandle(fh, path, flag)

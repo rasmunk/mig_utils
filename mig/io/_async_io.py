@@ -1,10 +1,10 @@
 from ._io import SFTPStore, SFTPFileHandle
 
 
-class AsyncSFTPHandle(SFTPFileHandle):
+class AsyncSFTPFileHandle(SFTPFileHandle):
 
-    def __init__(self, fh, name):
-        super().__init__(fh, name)
+    def __init__(self, fh, name, flag):
+        super().__init__(fh, name, flag)
 
     def __iter__(self):
         return super().__iter__()
@@ -18,24 +18,44 @@ class AsyncSFTPHandle(SFTPFileHandle):
     def __exit__(self, exc_type, exc_val, exc_tb):
         super().__exit__(exc_type, exc_val, exc_tb)
 
-    def close(self):
-        super().close()
+    async def close(self):
+        await super().close()
 
-    def read(self, n: int = -1):
-        return super().read(n)
+    async def read(self, n: int = -1):
+        return await super().read(n)
 
-    def write(self, path, data, flag='w'):
-        super().write(path, data, flag)
+    async def write(self, data):
+        await super().write(data)
 
-    def seek(self, offset):
-        super().seek(offset)
+    async def seek(self, offset):
+        await super().seek(offset)
 
-    def read_binary(self, n: int = -1):
-        return super().read_binary(n)
+    async def read_binary(self, n: int = -1):
+        return await super().read_binary(n)
 
-    def tell(self):
-        return super().tell()
+    async def tell(self):
+        return await super().tell()
 
 
-class AsyncSFTPStore:
-    pass
+class AsyncSFTPStore(SFTPStore):
+
+    def __init__(self, host=None, username=None, password=None):
+        super().__init__(host, username, password)
+
+    def __enter__(self):
+        return super().__enter__()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        super().__exit__(exc_type, exc_val, exc_tb)
+
+    async def open(self, path, flag='r'):
+        return await super().open(path, flag)
+
+    async def list(self, path='.'):
+        return await super().list(path)
+
+    async def remove(self, path):
+        await super().remove(path)
+
+    async def close(self):
+        await super().close()
