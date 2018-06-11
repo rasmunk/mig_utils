@@ -188,7 +188,7 @@ class SFTPFileHandle(FileHandle):
         """
         self.fh.close()
 
-    def read(self, n: int = -1):
+    def read(self, n=-1):
         """
         :param n: amount of bytes to be read, defaults to the entire file
         :return: the content of path, decoded to utf-8 string
@@ -222,7 +222,7 @@ class SFTPFileHandle(FileHandle):
         """
         self.fh.seek64(offset)
 
-    def read_binary(self, n: int = -1):
+    def read_binary(self, n=-1):
         """
         :param n: amount of bytes to be read
         :return: a binary string of the content within in file
