@@ -1,4 +1,4 @@
 [flake8]
 ignore = E402
 max-line-length = 90
-exclude = build,benchmarks,ssh2-python,mig/io/__init__.py
+exclude = build,benchmarks,ssh2-python,mig/io/__init__.py,mig/io/_async_io.py
