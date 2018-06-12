@@ -160,7 +160,7 @@ async def main(fh):
     job1_results = m.Queue(10)
     job2_results = m.Queue(10)
 
-    with SFTPStore(host='io.idmc.dk', username='sharelink', password='sharelink') as \
+    with IDMCShare('K2wzxDcEBm') as \
             share:
 
         jobs = [
@@ -195,24 +195,30 @@ async def main(fh):
 
 
 def serial(bench_fh):
-    share = SFTPStore("io.idmc.dk", username='sharelink', password='sharelink')
+    share = IDMCShare('K2wzxDcEBm')
     start = time.time()
     file1 = 'rec_8bit_ph03_cropC_kmeans_scale510.tif'
     with share.open(file1, 'rb') as fh:
+        load_start = time.time()
         x = Image.open(io.BytesIO(fh.read()))
         v = pil_to_ndarray(x)
+        load_stop = time.time()
         foam_labelling(v)
     stop = time.time()
-    bench_fh.write("serial,scale_image,{}\n".format(stop-start))
+    bench_fh.write("serial,scale_image,{},{}\n".format(load_stop-load_start,
+                                                       stop-start))
 
     start = time.time()
     file2 = '098_rec06881_stack.tif'
     with share.open(file2, 'rb') as fh:
+        load_start = time.time()
         x = Image.open(io.BytesIO(fh.read()))
         v = pil_to_ndarray(x)
+        load_stop = time.time()
         alu_foam_nucleation(v)
     stop = time.time()
-    bench_fh.write("serial,098_rec,{}\n".format(stop-start))
+    bench_fh.write("serial,098_rec,{},{}\n".format(load_stop-load_start,
+                                                   stop-start))
     share.close()
 
 
@@ -225,15 +231,15 @@ def async(fh):
 
 
 if __name__ == "__main__":
-    # with open('bench', 'a') as fh:
-    #     fh.write('test,file,time(sec)\n')
-    #     for num in range(50):
-    #         serial(fh)
-
-    with open('bench_async.txt', 'a') as fh:
-        fh.write('test,file,time(sec)\n')
+    with open('bench', 'a') as fh:
+        fh.write('test,file,load time(sec),exetime(sec)\n')
         # for num in range(50):
-        async(fh)
+        serial(fh)
+
+    # with open('bench_async.txt', 'a') as fh:
+    #     fh.write('test,file,time(sec)\n')
+    #     # for num in range(50):
+    #     async(fh)
 
     # with open('async.txt', 'w') as fh:
     #     for num in range(50):
