@@ -9,7 +9,8 @@ mig_utils
 A Minimum Intrusion Grid(MiG) utilities python library:
 It includes the mig.io module that provides access to MiG Sharelinks through
 python by wrapping around (https://github.com/althonos/fs.sshfs) for sshfs
-connections.
+connections and (https://github.com/ParallelSSH/ssh2-python.git) for sftp
+which is the default and recommended connection
 
 
 Installation
