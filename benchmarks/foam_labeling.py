@@ -99,9 +99,10 @@ async def read_handler(f_handler):
 
 async def read_handlers(jobs, output_queue):
     for job in jobs:
-        for handler in job.handlers:
-            job.data.content = await read_handler(handler)
+        for f_handler in job.handlers:
+            job.data.content = await read_handler(f_handler)
             output_queue.put(job.data)
+            print("Sent data")
 
 
 async def img_to_ndarray(input_queue, output_queue, excep_queue):
@@ -109,6 +110,7 @@ async def img_to_ndarray(input_queue, output_queue, excep_queue):
         check_excep(excep_queue)
         try:
             data = input_queue.get(timeout=5)
+            print("got data")
             image = Image.open(io.BytesIO(data.content))
             frames = pil_to_ndarray(image)
             data.content = frames.copy()
@@ -148,7 +150,7 @@ def run(task, *args):
 async def main(fh):
     print("Start main")
     loop = asyncio.get_event_loop()
-    executor = concurrent.futures.ProcessPoolExecutor(
+    executor = concurrent.futures.ThreadPoolExecutor(
          max_workers=4
     )
     m = multiprocessing.Manager()
@@ -163,6 +165,11 @@ async def main(fh):
     with IDMCShare('K2wzxDcEBm') as \
             share:
 
+        handlers = [
+            share.open('rec_8bit_ph03_cropC_kmeans_scale510.tif', 'rb'),
+            share.open('098_rec06881_stack.tif', 'rb')
+        ]
+
         jobs = [
             Job([share.open('rec_8bit_ph03_cropC_kmeans_scale510.tif', 'rb')],
                 foam_labelling, job1_results),
@@ -173,8 +180,8 @@ async def main(fh):
         async_jobs = [
             loop.run_in_executor(executor, run, read_handlers,
                                  jobs, job_files),
-            # loop.run_in_executor(executor, run, img_to_ndarray, job_files, job_images,
-            #                      q_excep),
+            loop.run_in_executor(executor, run, img_to_ndarray, job_files,
+                                 job_images, q_excep),
         ]
 
         # async_process = [
@@ -231,15 +238,15 @@ def async(fh):
 
 
 if __name__ == "__main__":
-    with open('bench', 'a') as fh:
-        fh.write('test,file,load time(sec),exetime(sec)\n')
-        # for num in range(50):
-        serial(fh)
-
-    # with open('bench_async.txt', 'a') as fh:
-    #     fh.write('test,file,time(sec)\n')
+    # with open('bench', 'a') as fh:
+    #     fh.write('test,file,load time(sec),exetime(sec)\n')
     #     # for num in range(50):
-    #     async(fh)
+    #     serial(fh)
+
+    with open('bench_async.txt', 'a') as fh:
+        fh.write('test,file,time(sec)\n')
+        # for num in range(50):
+        async(fh)
 
     # with open('async.txt', 'w') as fh:
     #     for num in range(50):
