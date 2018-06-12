@@ -17,7 +17,7 @@ class SSH2LibInstall(install):
         process.wait()
 
         build = 'git checkout a8e0d5d5da7dfd00346628b01ca07c61a5e4de1c' \
-                '&& sudo ./ci/install-ssh2.sh'
+                '&& ./ci/install-ssh2.sh'
         process = subprocess.Popen(build, shell=True, cwd='ssh2-python')
         process.wait()
         install.run(self)
@@ -28,7 +28,7 @@ with open('README.rst') as r_file:
 
 setup(
     name='mig-utils',
-    version='0.1.6',
+    version='0.1.6.2',
     long_description=long_description,
     description='Minimum Intrusion Grid (MiG) Utilities library',
     url='https://github.com/rasmunk/mig_utils',
