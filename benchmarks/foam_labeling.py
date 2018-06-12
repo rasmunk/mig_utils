@@ -100,6 +100,7 @@ async def read_handler(f_handler):
 async def read_handlers(jobs, output_queue):
     for job in jobs:
         for f_handler in job.handlers:
+            print("read data")
             job.data.content = await read_handler(f_handler)
             output_queue.put(job.data)
             print("Sent data")
@@ -109,7 +110,7 @@ async def img_to_ndarray(input_queue, output_queue, excep_queue):
     while True:
         check_excep(excep_queue)
         try:
-            data = input_queue.get(timeout=5)
+            data = input_queue.get(timeout=2)
             print("got data")
             image = Image.open(io.BytesIO(data.content))
             frames = pil_to_ndarray(image)
@@ -125,7 +126,7 @@ async def process_images(input_queue, job, excep):
     while True:
         check_excep(excep)
         try:
-            data = input_queue.get(timeout=5)
+            data = input_queue.get(timeout=2)
             if data.id == job.id:
                 result = job.func(data.content)
                 data.content = result
@@ -166,13 +167,13 @@ async def main(fh):
             share:
 
         handlers = [
-            share.open('rec_8bit_ph03_cropC_kmeans_scale510.tif', 'rb'),
+            # share.open('rec_8bit_ph03_cropC_kmeans_scale510.tif', 'rb'),
             share.open('098_rec06881_stack.tif', 'rb')
         ]
 
         jobs = [
-            Job([share.open('rec_8bit_ph03_cropC_kmeans_scale510.tif', 'rb')],
-                foam_labelling, job1_results),
+            # Job([share.open('rec_8bit_ph03_cropC_kmeans_scale510.tif', 'rb')],
+            #     foam_labelling, job1_results),
             Job([share.open('098_rec06881_stack.tif', 'rb')],
                 alu_foam_nucleation, job2_results)
         ]
@@ -184,10 +185,10 @@ async def main(fh):
                                  job_images, q_excep),
         ]
 
-        # async_process = [
-        #     loop.run_in_executor(executor, run, process_images, job_images,
-        #                          job, q_excep) for job in jobs
-        # ]
+        async_process = [
+             loop.run_in_executor(executor, run, process_images, job_images,
+                                  job, q_excep) for job in jobs
+        ]
 
         for job in jobs:
             image = job.result_queue.get()
@@ -196,7 +197,7 @@ async def main(fh):
 
         q_excep.put(CancelledError)
         q_excep.put(CancelledError)
-        # completed, pending = await asyncio.wait(async_process)
+        completed, pending = await asyncio.wait(async_process)
         print("Finished")
     executor.shutdown(wait=True)
 
@@ -240,8 +241,8 @@ def async(fh):
 if __name__ == "__main__":
     # with open('bench', 'a') as fh:
     #     fh.write('test,file,load time(sec),exetime(sec)\n')
-    #     # for num in range(50):
-    #     serial(fh)
+    #     for num in range(50):
+    #         serial(fh)
 
     with open('bench_async.txt', 'a') as fh:
         fh.write('test,file,time(sec)\n')
