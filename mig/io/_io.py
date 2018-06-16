@@ -1,6 +1,7 @@
 import fs
 import six
 import socket
+from io import FileIO
 from abc import ABCMeta, abstractmethod
 from fs.errors import ResourceNotFound
 from ssh2.session import Session
@@ -26,6 +27,14 @@ class DataStore():
         pass
 
     @abstractmethod
+    def close(self):
+        pass
+
+    @abstractmethod
+    def closed(self):
+        pass
+
+    @abstractmethod
     def list(self, path):
         pass
 
@@ -33,24 +42,44 @@ class DataStore():
     def remove(self, path):
         pass
 
-    @abstractmethod
-    def close(self):
-        pass
-
 
 @six.add_metaclass(ABCMeta)
-class FileHandle():
-
-    @abstractmethod
-    def read(self):
-        pass
-
-    @abstractmethod
-    def write(self, data):
-        pass
+class FileHandle(FileIO):
 
     @abstractmethod
     def close(self):
+        pass
+
+    @abstractmethod
+    def read(self, size=-1):
+        pass
+
+    @abstractmethod
+    def readable(self, *args, **kwargs):
+        pass
+
+    @abstractmethod
+    def seek(self, *args, **kwargs):
+        pass
+
+    @abstractmethod
+    def seekable(self, *args, **kwargs):
+        pass
+
+    @abstractmethod
+    def tell(self, *args, **kwargs):
+        pass
+
+    @abstractmethod
+    def truncate(self, *args, **kwargs):
+        pass
+
+    @abstractmethod
+    def writable(self, *args, **kwargs):
+        pass
+
+    @abstractmethod
+    def write(self, *args, **kwargs):
         pass
 
 
@@ -200,6 +229,28 @@ class SFTPFileHandle(FileHandle):
             result = self.read_binary(n).decode('utf-8')
             return result
 
+    def readable(self, *args, **kwargs):
+        return 'r' in self.flag
+
+    def seek(self, offset):
+        """ Seek file to a given offset
+        :param offset: amount of bytes to skip
+        :return: None
+        """
+        self.fh.seek64(offset)
+
+    def seekable(self, *args, **kwargs):
+        super().seekable(*args, **kwargs)
+
+    def tell(self):
+        """ Get the current file handle offset
+        :return: int
+        """
+        return self.fh.tell64()
+
+    def writable(self, *args, **kwargs):
+        super().writable(*args, **kwargs)
+
     def write(self, data):
         """
         :param path: path to the file that should be created/written to
@@ -215,13 +266,6 @@ class SFTPFileHandle(FileHandle):
         else:
             self.fh.write(six.b(str(data)))
 
-    def seek(self, offset):
-        """ Seek file to a given offset
-        :param offset: amount of bytes to skip
-        :return: None
-        """
-        self.fh.seek64(offset)
-
     def read_binary(self, n=-1):
         """
         :param n: amount of bytes to be read
@@ -235,12 +279,6 @@ class SFTPFileHandle(FileHandle):
             for size, chunk in self.fh:
                 data.append(chunk)
         return b"".join(data)
-
-    def tell(self):
-        """ Get the current file handle offset
-        :return: int
-        """
-        return self.fh.tell64()
 
 
 class SFTPStore(DataStore):
@@ -260,6 +298,12 @@ class SFTPStore(DataStore):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+
+    def close(self):
+        self._client = None
+
+    def closed(self):
+        return self._client is None
 
     def open(self, path, flag='r'):
         """
@@ -298,9 +342,6 @@ class SFTPStore(DataStore):
         :param path: path to the file that should be removed
         """
         self._client.unlink(six.text_type(path))
-
-    def close(self):
-        self._client = None
 
 
 class ERDA:
