@@ -1,39 +1,11 @@
 import io
 import time
-import asyncio
-import concurrent.futures
+import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
-import uuid
-import multiprocessing
 from PIL import Image
-from asyncio import FIRST_COMPLETED
-from concurrent.futures import CancelledError
-from multiprocessing import Queue
-from multiprocessing.queues import Empty
 from skimage.io._plugins.pil_plugin import pil_to_ndarray
-from mig.io import IDMCShare, ERDAShare, SFTPStore, SSHFSStore, AsyncSFTPStore
-
-
-class Data:
-
-    def __init__(self, id):
-        assert id is not None
-        self.id = id
-        self.content = None
-
-
-class Job:
-
-    def __init__(self, handlers, func, result_queue):
-        assert handlers is not None
-        assert func is not None
-        assert result_queue is not None
-        self.id = uuid.uuid4()
-        self.data = Data(self.id)
-        self.handlers = handlers
-        self.func = func
-        self.result_queue = result_queue
+from mig.io import IDMCShare
 
 
 def foam_labelling(stack_image):
@@ -83,124 +55,6 @@ def alu_foam_nucleation(stack_image):
         cax.set_ylabel(clabel[1])
 
 
-def check_excep(excep):
-    try:
-        excep = excep.get(block=False)
-        print("raising")
-        raise excep
-    except Empty:
-        return None
-
-
-async def read_handler(f_handler):
-    with f_handler:
-        return f_handler.read()
-
-
-async def read_handlers(jobs, output_queue):
-    for job in jobs:
-        for f_handler in job.handlers:
-            job.data.content = await read_handler(f_handler)
-            output_queue.put(job.data)
-            print("Sent data")
-
-
-async def img_to_ndarray(input_queue, output_queue, excep_queue):
-    while True:
-        check_excep(excep_queue)
-        try:
-            data = input_queue.get(timeout=5)
-            print("got data")
-            image = Image.open(io.BytesIO(data.content))
-            frames = pil_to_ndarray(image)
-            data.content = frames.copy()
-            output_queue.put(data)
-            print("sent image")
-        except Empty:
-            pass
-
-
-async def process_images(input_queue, job, excep):
-    print("Start process image")
-    while True:
-        check_excep(excep)
-        try:
-            data = input_queue.get(timeout=5)
-            if data.id == job.id:
-                result = job.func(data.content)
-                data.content = result
-                print("submitting result")
-                job.result_queue.put(data)
-        except Empty:
-            pass
-
-
-def run(task, *args):
-    loop = asyncio.new_event_loop()
-    try:
-        task = task(*args)
-        asyncio.set_event_loop(loop)
-        return loop.run_until_complete(task)
-    except CancelledError:
-        pass
-    finally:
-        loop.close()
-
-
-async def main(fh):
-    print("Start main")
-    loop = asyncio.get_event_loop()
-    executor = concurrent.futures.ThreadPoolExecutor(
-         max_workers=4
-    )
-    m = multiprocessing.Manager()
-    loop.set_default_executor(executor)
-
-    q_excep = m.Queue()
-    job_files = m.Queue(10)
-    job_images = m.Queue(10)
-    job1_results = m.Queue(10)
-    job2_results = m.Queue(10)
-
-    with IDMCShare('K2wzxDcEBm') as \
-            share:
-
-        handlers = [
-            share.open('rec_8bit_ph03_cropC_kmeans_scale510.tif', 'rb'),
-            share.open('098_rec06881_stack.tif', 'rb')
-        ]
-
-        jobs = [
-            Job([share.open('rec_8bit_ph03_cropC_kmeans_scale510.tif', 'rb')],
-                foam_labelling, job1_results),
-            Job([share.open('098_rec06881_stack.tif', 'rb')],
-                alu_foam_nucleation, job2_results)
-        ]
-
-        async_jobs = [
-            loop.run_in_executor(executor, run, read_handlers,
-                                 jobs, job_files),
-            loop.run_in_executor(executor, run, img_to_ndarray, job_files,
-                                 job_images, q_excep),
-        ]
-
-        # async_process = [
-        #     loop.run_in_executor(executor, run, process_images, job_images,
-        #                          job, q_excep) for job in jobs
-        # ]
-
-        for job in jobs:
-            image = job.result_queue.get()
-            plt.imshow(image, cmap='bone')
-            plt.show()
-
-        q_excep.put(CancelledError)
-        q_excep.put(CancelledError)
-        # completed, pending = await asyncio.wait(async_process)
-        print("Finished")
-    executor.shutdown(wait=True)
-
-
 def serial(bench_fh):
     share = IDMCShare('K2wzxDcEBm')
     start = time.time()
@@ -212,8 +66,15 @@ def serial(bench_fh):
         load_stop = time.time()
         foam_labelling(v)
     stop = time.time()
-    bench_fh.write("serial,scale_image,{},{}\n".format(load_stop-load_start,
-                                                       stop-start))
+    bench_fh.write("serial,scale_image,{},{}\n".format(load_stop - load_start,
+                                                       stop - start))
+    with share.open(file1, 'rb') as fh:
+        load_start = time.time()
+        x = Image.open(io.BytesIO(fh.read()))
+        v = pil_to_ndarray(x)
+        load_stop = time.time()
+        foam_labelling(v)
+
 
     start = time.time()
     file2 = '098_rec06881_stack.tif'
@@ -224,47 +85,42 @@ def serial(bench_fh):
         load_stop = time.time()
         alu_foam_nucleation(v)
     stop = time.time()
-    bench_fh.write("serial,098_rec,{},{}\n".format(load_stop-load_start,
-                                                   stop-start))
+    bench_fh.write("serial,098_rec,{},{}\n".format(load_stop - load_start,
+                                                   stop - start))
     share.close()
 
 
-def async(fh):
-    loop = asyncio.get_event_loop()
-    try:
-        loop.run_until_complete(main(fh))
-    finally:
-        loop.close()
+def local(bench_fh):
+
+    start = time.time()
+    file1 = 'max_data/rec_8bit_ph03_cropC_kmeans_scale510.tif'
+    with open(file1, 'rb') as fh:
+        load_start = time.time()
+        x = Image.open(io.BytesIO(fh.read()))
+        v = pil_to_ndarray(x)
+        load_stop = time.time()
+        foam_labelling(v)
+    stop = time.time()
+    bench_fh.write("serial,scale_image,{},{}\n".format(load_stop - load_start,
+                                                       stop - start))
+
+    start = time.time()
+    file2 = 'max_data/098_rec06881_stack.tif'
+    with open(file2, 'rb') as fh:
+        load_start = time.time()
+        x = Image.open(io.BytesIO(fh.read()))
+        v = pil_to_ndarray(x)
+        load_stop = time.time()
+        alu_foam_nucleation(v)
+    stop = time.time()
+    bench_fh.write("serial,098_rec,{},{}\n".format(load_stop - load_start,
+                                                   stop - start))
 
 
 if __name__ == "__main__":
-    with open('bench', 'a') as fh:
-        fh.write('test,file,load time(sec),exetime(sec)\n')
-        for num in range(10):
+    with open('bench_remote.txt', 'a') as fh:
+        #fh.write('test,file,load time(sec),exetime(sec)\n')
+        for num in range(2):
+            print(num)
             serial(fh)
-
-    # with open('bench_async.txt', 'a') as fh:
-    #     fh.write('test,file,time(sec)\n')
-    #     # for num in range(50):
-    #     async(fh)
-
-    # with open('async.txt', 'w') as fh:
-    #     for num in range(50):
-    #         start = time.time()
-    #         async(fh)
-    #         stop = time.time()
-    #
-    #         projections = share.list('projections')
-    #         for projection in projections:
-    #             if projection.startswith('.'):
-    #                 continue
-    #             path = os.path.join('projections', projection)
-    #             t1 = time.time()
-    #             data = share.read_binary(filename=path)
-    #             t2 = time.time()
-    #             times.append(t2 - t1)
-    #
-    #         print("num_reads: {}".format(len(times)))
-    #         print("total_time: {}".format(sum(times)))
-    #         print("avg_read_time: {}".format(sum(times) / len(times)))
-
+            fh.flush()
