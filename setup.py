@@ -1,7 +1,5 @@
 import sys
 from setuptools import find_packages
-from setuptools.command.install import install
-import subprocess
 # Python 2 install
 if sys.version_info[0] >= 3:
     from distutils.core import setup
