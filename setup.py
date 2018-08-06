@@ -24,8 +24,5 @@ setup(
         'ssh2-python>=0.15.0',
         'six>=1.10',
     ],
-    include_package_data=True,
-    tests_require=[
-        'pytest',
-    ]
+    include_package_data=True
 )
