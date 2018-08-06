@@ -5,7 +5,7 @@ import six
 import _io
 from random import random
 from mig.io import ERDASSHFSShare, ERDASftpShare, \
-    IDMCSSHFSShare, IDMCSftpShare, SFTPFileHandle
+    IDMCSSHFSShare, SFTPFileHandle
 
 # Test input
 try:
