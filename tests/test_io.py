@@ -4,8 +4,7 @@ import os
 import six
 import _io
 from random import random
-from mig.io import ERDASSHFSShare, ERDASftpShare, \
-    IDMCSSHFSShare, SFTPFileHandle
+from mig.io import ERDASSHFSShare, ERDASftpShare, SFTPFileHandle
 
 # Test input
 try:
@@ -86,67 +85,67 @@ class ERDASSHFSShareTest(unittest.TestCase):
         self.assertIn(test_b_num, self.share.read_binary(self.binary_file))
 
 
-class IDMCSSHFSShareTest(unittest.TestCase):
-    share = None
-
-    def setUp(self):
-        # Open connection to a sharelink
-        assert 'IDMC_TEST_SHARE' in sharelinks
-        self.share = IDMCSSHFSShare(sharelinks['IDMC_TEST_SHARE'])
-        self.seed = str(random())[2:10]
-        self.tmp_file = "".join(["tmp", self.seed])
-        self.write_file = "".join(["write_test", self.seed])
-        self.binary_file = "".join(['binary_test', self.seed])
-
-    def tearDown(self):
-        self.share.remove(self.tmp_file)
-        self.share.remove(self.write_file)
-        self.share.remove(self.binary_file)
-        self.share = None
-
-    def test_share(self):
-        # List files/dirs in share
-        self.share.write(self.tmp_file, six.text_type("sddsfsf"))
-        self.assertIn(self.tmp_file, self.share.list())
-        # Read file directly as string
-        self.assertEqual(self.share.read(self.tmp_file), 'sddsfsf')
-        # Read file directly as binary
-        self.assertEqual(self.share.read_binary(self.tmp_file), b'sddsfsf')
-
-        # Get a _io.TextIOWrapper object with automatic close
-        with self.share.open(self.tmp_file, 'r') as fh:
-            self.assertEqual(fh.read(), 'sddsfsf')
-
-        # Get a default _io.TextIOWrapper object with manual lifetime
-        fh = self.share.open(self.tmp_file, 'r')
-        self.assertIsInstance(fh, _io.TextIOWrapper)
-        self.assertEqual(fh.read(), 'sddsfsf')
-        fh.close()
-
-        # Writing strings to a file
-        # six -> ensure py2/3 compatibility
-        test_string = six.text_type('Hello There')
-        test_num = six.text_type(42342342)
-        test_float = six.text_type(3434.231)
-
-        with self.share.open(self.write_file, 'w') as w_file:
-            w_file.write(test_string)
-            w_file.write(test_num)
-            w_file.write(test_float)
-
-        self.assertIn(test_string, self.share.read(self.write_file))
-        self.assertIn(str(test_num), self.share.read(self.write_file))
-        self.assertIn(str(test_float), self.share.read(self.write_file))
-
-        # Writing binary to a file
-        test_binary = b'Hello again'
-        test_b_num = six.int2byte(255)
-        with self.share.open(self.binary_file, 'wb') as b_file:
-            b_file.write(test_binary)
-            b_file.write(test_b_num)
-
-        self.assertIn(test_binary, self.share.read_binary(self.binary_file))
-        self.assertIn(test_b_num, self.share.read_binary(self.binary_file))
+# class IDMCSSHFSShareTest(unittest.TestCase):
+#     share = None
+#
+#     def setUp(self):
+#         # Open connection to a sharelink
+#         assert 'IDMC_TEST_SHARE' in sharelinks
+#         self.share = IDMCSSHFSShare(sharelinks['IDMC_TEST_SHARE'])
+#         self.seed = str(random())[2:10]
+#         self.tmp_file = "".join(["tmp", self.seed])
+#         self.write_file = "".join(["write_test", self.seed])
+#         self.binary_file = "".join(['binary_test', self.seed])
+#
+#     def tearDown(self):
+#         self.share.remove(self.tmp_file)
+#         self.share.remove(self.write_file)
+#         self.share.remove(self.binary_file)
+#         self.share = None
+#
+#     def test_share(self):
+#         # List files/dirs in share
+#         self.share.write(self.tmp_file, six.text_type("sddsfsf"))
+#         self.assertIn(self.tmp_file, self.share.list())
+#         # Read file directly as string
+#         self.assertEqual(self.share.read(self.tmp_file), 'sddsfsf')
+#         # Read file directly as binary
+#         self.assertEqual(self.share.read_binary(self.tmp_file), b'sddsfsf')
+#
+#         # Get a _io.TextIOWrapper object with automatic close
+#         with self.share.open(self.tmp_file, 'r') as fh:
+#             self.assertEqual(fh.read(), 'sddsfsf')
+#
+#         # Get a default _io.TextIOWrapper object with manual lifetime
+#         fh = self.share.open(self.tmp_file, 'r')
+#         self.assertIsInstance(fh, _io.TextIOWrapper)
+#         self.assertEqual(fh.read(), 'sddsfsf')
+#         fh.close()
+#
+#         # Writing strings to a file
+#         # six -> ensure py2/3 compatibility
+#         test_string = six.text_type('Hello There')
+#         test_num = six.text_type(42342342)
+#         test_float = six.text_type(3434.231)
+#
+#         with self.share.open(self.write_file, 'w') as w_file:
+#             w_file.write(test_string)
+#             w_file.write(test_num)
+#             w_file.write(test_float)
+#
+#         self.assertIn(test_string, self.share.read(self.write_file))
+#         self.assertIn(str(test_num), self.share.read(self.write_file))
+#         self.assertIn(str(test_float), self.share.read(self.write_file))
+#
+#         # Writing binary to a file
+#         test_binary = b'Hello again'
+#         test_b_num = six.int2byte(255)
+#         with self.share.open(self.binary_file, 'wb') as b_file:
+#             b_file.write(test_binary)
+#             b_file.write(test_b_num)
+#
+#         self.assertIn(test_binary, self.share.read_binary(self.binary_file))
+#         self.assertIn(test_b_num, self.share.read_binary(self.binary_file))
 
 
 class ERDASFTPShareTest(unittest.TestCase):
