@@ -17,9 +17,8 @@ env:
   - secure: AHKBlInxtMqfw2tUufm87og8MhIRiWDDctLklXAcGO7Yd1E4eSkBYeWUY7wjphAo560hhAh+LCO0irPGVKOkpkWysThCOAgGatXZXdXU298pJQSYmgAbbifusHOqm26hYZo34QFKs4NTx0JjOwjY1hynFiqvMtys9jr/v29EWC6C0xcYm2jN+1rPsLi5v7t5BIRfJdxUhfXsOrl63D7BCuChXATWqkTCSusvbS8/y+95PaxsdZofmXoYvcoOuT/e30sewIgynYP7Mpv01l3u4ykH73yWKAGOYtvLVN0n3cZWbyHkZZ3r/l65e/0Cuu2nBMw8RpFukQ2iGzK+Fs90yo/4yBnOttupiSUdWt6uciagFMsqdapfjyGdWuI0cGA+NI2s8oC2A9F7/zH/Qdnnp+H4cFOQZSggH6HQtS1PelfRzv66cgJWDEhIkeMg7qyqXGnnHN/yBuVDFPH9FKGdJxRvl58133TxAMTCpjODq9T+uQXiXwJxPTvqhZM7wTTrDB2Os0NaRpqPSnhvCv+IQ3p8E4NQXJy18Ki6iG2cTpI7CDT72y623DPQoAtzdNt3bMMIaHjF49VMgHdsa2AFQRkMjo1wNtV+DVrykKRdIYQWwf/SFrLuvjt/rxNfDDygqzrGFp9YxnEUo1WV8txbgDaFqG48HSMNrwlO2+2vk/o=
   - LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu
 install:
-- python setup.py install
 - pip install -r tests/requirements.txt
-- pip install -e .
+- python setup.py install
 script:
 - python setup.py check -rms
 - flake8
