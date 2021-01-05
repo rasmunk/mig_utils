@@ -4,13 +4,20 @@ import socket
 from abc import ABCMeta, abstractmethod
 from fs.errors import ResourceNotFound
 from ssh2.session import Session
-from ssh2.sftp import LIBSSH2_FXF_READ, LIBSSH2_FXF_WRITE, LIBSSH2_FXF_CREAT, \
-    LIBSSH2_SFTP_S_IRUSR, LIBSSH2_SFTP_S_IWUSR, LIBSSH2_SFTP_S_IRGRP, \
-    LIBSSH2_SFTP_S_IROTH, LIBSSH2_FXF_APPEND
+from ssh2.sftp import (
+    LIBSSH2_FXF_READ,
+    LIBSSH2_FXF_WRITE,
+    LIBSSH2_FXF_CREAT,
+    LIBSSH2_SFTP_S_IRUSR,
+    LIBSSH2_SFTP_S_IWUSR,
+    LIBSSH2_SFTP_S_IRGRP,
+    LIBSSH2_SFTP_S_IROTH,
+    LIBSSH2_FXF_APPEND,
+)
 
 
 @six.add_metaclass(ABCMeta)
-class DataStore():
+class DataStore:
     _client = None
 
     def __init__(self, client):
@@ -22,7 +29,7 @@ class DataStore():
         self._client = client
 
     @abstractmethod
-    def open(self, path, flag='r'):
+    def open(self, path, flag="r"):
         pass
 
     @abstractmethod
@@ -39,8 +46,7 @@ class DataStore():
 
 
 @six.add_metaclass(ABCMeta)
-class FileHandle():
-
+class FileHandle:
     @abstractmethod
     def read(self):
         pass
@@ -55,19 +61,17 @@ class FileHandle():
 
 
 class SSHFSStore(DataStore):
-
     def __init__(self, host=None, username=None, password=None):
         assert host is not None
         assert username is not None
         assert password is not None
-        client = fs.open_fs(
-            "ssh://" + username + ":" + password + host)
+        client = fs.open_fs("ssh://" + username + ":" + password + host)
         super(SSHFSStore, self).__init__(client)
 
     def geturl(self, path):
         return self._client.geturl(path)
 
-    def open(self, path, flag='r'):
+    def open(self, path, flag="r"):
         """
         Used to get a python filehandler object
         :param path:
@@ -79,7 +83,7 @@ class SSHFSStore(DataStore):
         """
         return self._client.open(six.text_type(path), flag)
 
-    def list(self, path='.'):
+    def list(self, path="."):
         """
         :param path:
         file system path which items will be returned
@@ -99,7 +103,7 @@ class SSHFSStore(DataStore):
         with self._client.open(six.text_type(path)) as open_file:
             return open_file.read()
 
-    def write(self, path, data, flag='a'):
+    def write(self, path, data, flag="a"):
         """
         :param path:
         path to the file being written
@@ -123,7 +127,7 @@ class SSHFSStore(DataStore):
         except ResourceNotFound:
             return False
 
-    def list_attr(self, path='.'):
+    def list_attr(self, path="."):
         """
         :param path:
         directory path to be listed
@@ -160,7 +164,6 @@ class SSHFSStore(DataStore):
 
 
 class SFTPFileHandle(FileHandle):
-
     def __init__(self, fh, name, flag):
         """
         :param fh: Expects a PySFTPHandle
@@ -193,11 +196,11 @@ class SFTPFileHandle(FileHandle):
         :param n: amount of bytes to be read, defaults to the entire file
         :return: the content of path, decoded to utf-8 string
         """
-        assert 'r' in self.flag
-        if 'b' in self.flag:
+        assert "r" in self.flag
+        if "b" in self.flag:
             return self.read_binary(n)
         else:
-            result = self.read_binary(n).decode('utf-8')
+            result = self.read_binary(n).decode("utf-8")
             return result
 
     def write(self, data):
@@ -207,7 +210,7 @@ class SFTPFileHandle(FileHandle):
         :param flag: write mode
         :return:
         """
-        assert 'w' in self.flag or 'a' in self.flag
+        assert "w" in self.flag or "a" in self.flag
         if type(data) == bytes:
             self.fh.write(data)
         elif type(data) == str:
@@ -244,7 +247,6 @@ class SFTPFileHandle(FileHandle):
 
 
 class SFTPStore(DataStore):
-
     def __init__(self, host=None, username=None, password=None):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.connect((host, 22))
@@ -261,7 +263,7 @@ class SFTPStore(DataStore):
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    def open(self, path, flag='r'):
+    def open(self, path, flag="r"):
         """
         :param path: path to file on the sftp end
         :param flag: open mode, either 'r'=read, 'w'=write, 'a'=append
@@ -269,29 +271,34 @@ class SFTPStore(DataStore):
         :return: SFTPHandle, https://github.com/ParallelSSH/ssh2-python
         /blob/master/ssh2/sftp_handle.pyx
         """
-        if flag == 'r' or flag == 'rb':
-            fh = self._client.open(six.text_type(path), LIBSSH2_FXF_READ,
-                                   LIBSSH2_SFTP_S_IWUSR)
+        if flag == "r" or flag == "rb":
+            fh = self._client.open(
+                six.text_type(path), LIBSSH2_FXF_READ, LIBSSH2_SFTP_S_IWUSR
+            )
         else:
             w_flags = None
-            if flag == 'w' or flag == 'wb':
+            if flag == "w" or flag == "wb":
                 w_flags = LIBSSH2_FXF_CREAT | LIBSSH2_FXF_WRITE
-            elif flag == 'a' or flag == 'ab':
+            elif flag == "a" or flag == "ab":
                 w_flags = LIBSSH2_FXF_CREAT | LIBSSH2_FXF_WRITE | LIBSSH2_FXF_APPEND
-            mode = LIBSSH2_SFTP_S_IRUSR | LIBSSH2_SFTP_S_IWUSR | LIBSSH2_SFTP_S_IRGRP |\
-                LIBSSH2_SFTP_S_IROTH
+            mode = (
+                LIBSSH2_SFTP_S_IRUSR
+                | LIBSSH2_SFTP_S_IWUSR
+                | LIBSSH2_SFTP_S_IRGRP
+                | LIBSSH2_SFTP_S_IROTH
+            )
             fh = self._client.open(six.text_type(path), w_flags, mode)
         assert fh is not None
         handle = SFTPFileHandle(fh, path, flag)
         return handle
 
-    def list(self, path='.'):
+    def list(self, path="."):
         """
         :param path: path to the directory which content should be listed
         :return: list of str, of items in the path directory
         """
         with self._client.opendir(six.text_type(path)) as fh:
-            return [name.decode('utf-8') for size, name, attrs in fh.readdir()]
+            return [name.decode("utf-8") for size, name, attrs in fh.readdir()]
 
     def remove(self, path):
         """
@@ -312,14 +319,12 @@ class IDMC:
 
 
 class ERDASftpShare(SFTPStore):
-
     def __init__(self, username=None, password=None):
         super(ERDASftpShare, self).__init__(ERDA.url, username, password)
 
 
 # TODO -> cleanup duplication
 class ERDASSHFSShare(SSHFSStore):
-
     def __init__(self, share_link):
         """
         :param share_link:
@@ -328,12 +333,12 @@ class ERDASSHFSShare(SSHFSStore):
         https://erda.dk/wsgi-bin/sharelink.py.
         """
         host = "@" + ERDA.url + "/"
-        super(ERDASSHFSShare, self).__init__(host=host, username=share_link,
-                                             password=share_link)
+        super(ERDASSHFSShare, self).__init__(
+            host=host, username=share_link, password=share_link
+        )
 
 
 class ERDAShare(ERDASftpShare):
-
     def __init__(self, share_link):
         """
         :param share_link:
@@ -346,7 +351,6 @@ class ERDAShare(ERDASftpShare):
 
 # TODO -> cleanup duplication
 class IDMCSSHFSShare(SSHFSStore):
-
     def __init__(self, share_link):
         """
         :param share_link:
@@ -355,20 +359,20 @@ class IDMCSSHFSShare(SSHFSStore):
         https://erda.dk/wsgi-bin/sharelink.py.
         """
         host = "@" + IDMC.url + "/"
-        super(IDMCSSHFSShare, self).__init__(host=host, username=share_link,
-                                             password=share_link)
+        super(IDMCSSHFSShare, self).__init__(
+            host=host, username=share_link, password=share_link
+        )
 
 
 class IDMCSftpShare(SFTPStore):
-
     def __init__(self, username=None, password=None):
         super(IDMCSftpShare, self).__init__(IDMC.url, username, password)
 
 
 class IDMCShare(IDMCSftpShare):
-
     def __init__(self, share_link):
         super(IDMCShare, self).__init__(share_link, share_link)
+
 
 # class ErdaHome(DataStore):
 #     _target = ERDA.url
