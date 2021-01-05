@@ -1,5 +1,5 @@
 language: python
-sudo: required
+root: required
 compiler:
 - gcc
 python:
@@ -14,8 +14,6 @@ addons:
       - cmake
 env:
   global:
-  - secure: kW4STd+IVlRyFko8Xa77vKsq+g2AelScC5vHUkGKWSoEy2TFTFXvGEDJeppJ2PLi9Xz4Tp68pl2S2SsyiBA9bm+5gn7Ejgg+PsyYY2jdX53kGO555geE10CW8zInPrhYWhQViJ+7uk8jxYFvK3oCO3MAqWQwhtb9dH7vJ3Z8V6AoVzE1fOtbdtoF9ZqDMLzft1Y5fPUpCoHZCtmveJQVPzmJQRHHwXkHgUYvBoiCplBGotax+EwUNszBEps1Nukpb0vsozBZlrG4OLl3kyGQuFGecmzX8lr2nmpLcMCPOs0ntVjsRZF77ciCiJTrNOP3HCVgV6e7jpm4pkurffhKMOLBw00mGQzDww899jRIHhpAHRwCFGkfMuBgLrvFu+y1i0E0wrsLOIAXgBQ2CBi+xS4CExGMAK+hIezcIGJdtMDybKDXetMgd8+8Tw2RCPY3S2Pw0S+TirJCc37wbNlyLIHHPNzifITw5lTBiQZNyNKDzc482KCeIG5hHADC5O8InOloaY6Yyirh5eAoBTrBYuYRnHqwugWEta46SbKM0cT9bexWhDUfsbj9AecwlkZY5YvK8+fCAqJc0NKjs1+9lpfPJJYAa+rAC9JhoG/vE7NSS17d8qEHPrvbsTbSUppGL3jz0H0M83W0yZQoUMAhxh14EzWv4zJa3+Y2kWB1Hlc=
-  - secure: AHKBlInxtMqfw2tUufm87og8MhIRiWDDctLklXAcGO7Yd1E4eSkBYeWUY7wjphAo560hhAh+LCO0irPGVKOkpkWysThCOAgGatXZXdXU298pJQSYmgAbbifusHOqm26hYZo34QFKs4NTx0JjOwjY1hynFiqvMtys9jr/v29EWC6C0xcYm2jN+1rPsLi5v7t5BIRfJdxUhfXsOrl63D7BCuChXATWqkTCSusvbS8/y+95PaxsdZofmXoYvcoOuT/e30sewIgynYP7Mpv01l3u4ykH73yWKAGOYtvLVN0n3cZWbyHkZZ3r/l65e/0Cuu2nBMw8RpFukQ2iGzK+Fs90yo/4yBnOttupiSUdWt6uciagFMsqdapfjyGdWuI0cGA+NI2s8oC2A9F7/zH/Qdnnp+H4cFOQZSggH6HQtS1PelfRzv66cgJWDEhIkeMg7qyqXGnnHN/yBuVDFPH9FKGdJxRvl58133TxAMTCpjODq9T+uQXiXwJxPTvqhZM7wTTrDB2Os0NaRpqPSnhvCv+IQ3p8E4NQXJy18Ki6iG2cTpI7CDT72y623DPQoAtzdNt3bMMIaHjF49VMgHdsa2AFQRkMjo1wNtV+DVrykKRdIYQWwf/SFrLuvjt/rxNfDDygqzrGFp9YxnEUo1WV8txbgDaFqG48HSMNrwlO2+2vk/o=
   - LD_LIBRARY_PATH=/usr/local/lib/x86_64-linux-gnu
 install:
 - pip install -r tests/requirements.txt
@@ -34,6 +32,3 @@ deploy:
   on:
     tags: true
     branch: master
-    python: '3.6'
-notifications: 
-  slack: raz-s:se1PurXsQJv03nBZa9XWMOOS
