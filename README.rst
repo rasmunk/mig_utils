@@ -4,7 +4,8 @@ mig_utils
 
 .. image:: https://travis-ci.org/rasmunk/mig_utils.svg?branch=master
     :target: https://travis-ci.org/rasmunk/mig_utils
-
+.. image:: https://badge.fury.io/py/mig-utils.svg
+    :target: https://badge.fury.io/py/mig-utils
 
 A Minimum Intrusion Grid(MiG) utilities python library:
 It includes the mig.io module that provides access to MiG Sharelinks through
