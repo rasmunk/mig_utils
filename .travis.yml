@@ -1,5 +1,5 @@
 language: python
-root: required
+os: linux
 compiler:
 - gcc
 python:
@@ -23,7 +23,7 @@ script:
 - flake8
 - pytest tests/
 deploy:
-  skip_cleanup: true
+  skip_existing: true
   distributions: 'sdist bdist_wheel'
   provider: pypi
   user: rasmunk
