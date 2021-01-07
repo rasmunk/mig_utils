@@ -231,7 +231,6 @@ class SFTPFileHandle(FileHandle):
         :return: None
         """
         if whence == 0:
-            current_offset = self.fh.tell64()
             self.fh.seek64(offset)
         if whence == 1:
             # Seek relative to the current position
