@@ -21,9 +21,9 @@ setup(
     packages=find_packages(),
     install_requires=[
         "fs.sshfs>=0.8.0",
-        "fs>=2.0.7",
-        "ssh2-python>=0.15.0",
-        "six>=1.10",
+        "fs>=2.0.27",
+        "ssh2-python>=0.26.0",
+        "six>=1.15",
     ],
     include_package_data=True,
 )

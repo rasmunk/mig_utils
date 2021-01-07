@@ -388,12 +388,14 @@ class ShareSeekOffsetTest(unittest.TestCase):
         # binary
         with self.share.open(self.seek_file, "rb") as _file:
             content = _file.read()
-            self.assertEqual(content, six.binary_type(self.data, encoding="utf-8"))
+            self.assertEqual(content, six.ensure_binary(self.data, encoding="utf-8"))
 
             # offset to the middle space
             _file.seek(self.space_offset, whence=whence)
             offset_content = _file.read()
-            self.assertEqual(offset_content, six.binary_type("World", encoding="utf-8"))
+            self.assertEqual(
+                offset_content, six.ensure_binary("World", encoding="utf-8")
+            )
 
     def test_seek_offset_whence_1(self):
         # Seek relative to the current position
@@ -417,7 +419,7 @@ class ShareSeekOffsetTest(unittest.TestCase):
 
         with self.share.open(self.seek_file, "rb") as _file:
             content = _file.read()
-            self.assertEqual(content, six.binary_type(self.data, encoding="utf-8"))
+            self.assertEqual(content, six.ensure_binary(self.data, encoding="utf-8"))
             # Go to the middle
             _file.seek(self.space_offset)
             # Move forward 3 offsets
@@ -425,13 +427,13 @@ class ShareSeekOffsetTest(unittest.TestCase):
 
             # Reading the file moves the offset to the end
             end_content = _file.read()
-            self.assertEqual(end_content, six.binary_type("ld", encoding="utf-8"))
+            self.assertEqual(end_content, six.ensure_binary("ld", encoding="utf-8"))
 
             # Move back 8 chars from the end
             _file.seek(-8, whence=whence)
             rewind_content = _file.read()
             self.assertEqual(
-                rewind_content, six.binary_type("lo World", encoding="utf-8")
+                rewind_content, six.ensure_binary("lo World", encoding="utf-8")
             )
 
     def test_seek_offset_whence_2(self):
@@ -450,12 +452,12 @@ class ShareSeekOffsetTest(unittest.TestCase):
         # binary
         with self.share.open(self.seek_file, "rb") as _file:
             content = _file.read()
-            self.assertEqual(content, six.binary_type(self.data, encoding="utf-8"))
+            self.assertEqual(content, six.ensure_binary(self.data, encoding="utf-8"))
             # Go to the middle
             _file.seek(self.space_offset, whence=0)
             # offset to the end + 1
             _file.seek(1, whence=whence)
             offset_content = _file.read()
             self.assertEqual(
-                offset_content, six.binary_type("ello World", encoding="utf-8")
+                offset_content, six.ensure_binary("ello World", encoding="utf-8")
             )
