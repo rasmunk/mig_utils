@@ -239,11 +239,8 @@ class SFTPFileHandle(FileHandle):
             self.fh.seek(current_offset + offset)
         if whence == 2:
             file_stat = self.fh.fstat()
-            # Reset position
-            # Go to the file end
-            self.fh.seek(file_stat.filesize)
-            # Seek relative to the file's end
-            self.fh.seek(offset)
+            # Seek relative to the file end
+            self.fh.seek(file_stat.filesize + offset)
 
     def read_binary(self, n=-1):
         """
