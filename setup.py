@@ -12,7 +12,7 @@ with open("README.rst") as r_file:
 
 setup(
     name="mig-utils",
-    version="0.1.7.2",
+    version="0.1.7.3",
     long_description=long_description,
     description="Minimum Intrusion Grid (MiG) Utilities library",
     url="https://github.com/rasmunk/mig_utils",
