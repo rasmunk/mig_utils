@@ -48,6 +48,10 @@ class DataStore:
 @six.add_metaclass(ABCMeta)
 class FileHandle:
     @abstractmethod
+    def close(self):
+        pass
+
+    @abstractmethod
     def read(self):
         pass
 
@@ -56,7 +60,7 @@ class FileHandle:
         pass
 
     @abstractmethod
-    def close(self):
+    def seek(self, data, whence=0):
         pass
 
 
@@ -218,12 +222,28 @@ class SFTPFileHandle(FileHandle):
         else:
             self.fh.write(six.b(str(data)))
 
-    def seek(self, offset):
+    def seek(self, offset, whence=0):
         """ Seek file to a given offset
         :param offset: amount of bytes to skip
+        :param whence: defaults to 0 which means absolute file positioning
+                       other values are 1 which means seek relative to
+                       the current position and 2 means seek relative to the file's end.
         :return: None
         """
-        self.fh.seek64(offset)
+        if whence == 0:
+            current_offset = self.fh.tell64()
+            self.fh.seek64(offset)
+        if whence == 1:
+            # Seek relative to the current position
+            current_offset = self.fh.tell64()
+            self.fh.seek(current_offset + offset)
+        if whence == 2:
+            file_stat = self.fh.fstat()
+            # Reset position
+            # Go to the file end
+            self.fh.seek(file_stat.filesize)
+            # Seek relative to the file's end
+            self.fh.seek(offset)
 
     def read_binary(self, n=-1):
         """

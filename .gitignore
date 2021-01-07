@@ -113,3 +113,6 @@ sharelinks.txt
 ssh2-python/
 benchmarks/
 .pytest_cache/
+
+# IDE
+.vscode/
