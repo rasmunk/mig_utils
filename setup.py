@@ -12,7 +12,7 @@ with open("README.rst") as r_file:
 
 setup(
     name="mig-utils",
-    version="0.1.7.3",
+    version="0.1.7.4",
     long_description=long_description,
     description="Minimum Intrusion Grid (MiG) Utilities library",
     url="https://github.com/rasmunk/mig_utils",
@@ -20,10 +20,10 @@ setup(
     author_email="munk1@live.dk",
     packages=find_packages(),
     install_requires=[
-        "fs.sshfs>=0.8.0",
-        "fs>=2.0.27",
-        "ssh2-python>=0.26.0",
-        "six>=1.15",
+        "fs.sshfs==0.8.0",
+        "fs==2.0.27",
+        "ssh2-python==0.26.0",
+        "six==1.15",
     ],
     include_package_data=True,
 )
