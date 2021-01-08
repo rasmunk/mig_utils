@@ -4,6 +4,7 @@ import socket
 from abc import ABCMeta, abstractmethod
 from fs.errors import ResourceNotFound
 from ssh2.session import Session
+from ssh2.exceptions import SFTPProtocolError
 from ssh2.sftp import (
     LIBSSH2_FXF_READ,
     LIBSSH2_FXF_WRITE,
@@ -33,7 +34,19 @@ class DataStore:
         pass
 
     @abstractmethod
+    def exists(self, path):
+        pass
+
+    @abstractmethod
     def list(self, path):
+        pass
+
+    @abstractmethod
+    def mkdir(self, path, mode=755, **kwargs):
+        pass
+
+    @abstractmethod
+    def rmdir(self, path):
         pass
 
     @abstractmethod
@@ -87,6 +100,13 @@ class SSHFSStore(DataStore):
         """
         return self._client.open(six.text_type(path), flag)
 
+    def exists(self, path):
+        """
+        :param path: the path we are checking whether it exists
+        :return: Boolean
+        """
+        return self._client.exists(six.text_type(path))
+
     def list(self, path="."):
         """
         :param path:
@@ -117,6 +137,12 @@ class SSHFSStore(DataStore):
         """
         with self.open(six.text_type(path), flag) as fh:
             fh.write(data)
+
+    def mkdir(self, path, mode=755):
+        """
+        :param path: path to the directory that should be created
+        """
+        self._client._sftp.mkdir(six.text_type(path), mode)
 
     def remove(self, path):
         """
@@ -150,7 +176,7 @@ class SSHFSStore(DataStore):
         with self._client.openbin(six.text_type(path)) as open_file:
             return open_file.read()
 
-    def removedir(self, path):
+    def rmdir(self, path):
         """
         :param path:
         path the dir that should be removed
@@ -158,7 +184,7 @@ class SSHFSStore(DataStore):
         Bool, whether a dir was removed or not
         """
         try:
-            self._client.removedir(six.text_type(path))
+            self._client._sftp.rmdir(six.text_type(path))
             return True
         except ResourceNotFound:
             return False
@@ -191,7 +217,7 @@ class SFTPFileHandle(FileHandle):
     def close(self):
         """
         Close the passed PySFTPHandles
-        :return:
+        :return: None
         """
         self.fh.close()
 
@@ -212,7 +238,7 @@ class SFTPFileHandle(FileHandle):
         :param path: path to the file that should be created/written to
         :param data: data that should be written to the file, expects binary or str
         :param flag: write mode
-        :return:
+        :return: None
         """
         assert "w" in self.flag or "a" in self.flag
         if type(data) == bytes:
@@ -223,7 +249,7 @@ class SFTPFileHandle(FileHandle):
             self.fh.write(six.b(str(data)))
 
     def seek(self, offset, whence=0):
-        """ Seek file to a given offset
+        """Seek file to a given offset
         :param offset: amount of bytes to skip
         :param whence: defaults to 0 which means absolute file positioning
                        other values are 1 which means seek relative to
@@ -256,7 +282,7 @@ class SFTPFileHandle(FileHandle):
         return b"".join(data)
 
     def tell(self):
-        """ Get the current file handle offset
+        """Get the current file handle offset
         :return: int
         """
         return self.fh.tell64()
@@ -308,6 +334,20 @@ class SFTPStore(DataStore):
         handle = SFTPFileHandle(fh, path, flag)
         return handle
 
+    def exists(self, path):
+        """
+        :param path: the path we are checking whether it exists
+        :return: Boolean
+        """
+        # There is no direct way to check if it exists
+        # See if we can stat the designated path instead
+        try:
+            self._client.stat(six.text_type(path))
+            return True
+        except SFTPProtocolError:
+            return False
+        return False
+
     def list(self, path="."):
         """
         :param path: path to the directory which content should be listed
@@ -315,6 +355,20 @@ class SFTPStore(DataStore):
         """
         with self._client.opendir(six.text_type(path)) as fh:
             return [name.decode("utf-8") for size, name, attrs in fh.readdir()]
+
+    def mkdir(self, path, mode=755, **kwargs):
+        """
+        :param path: path to the directory that should be created
+        :return: Boolean
+        """
+        self._client.mkdir(six.text_type(path), mode)
+
+    def rmdir(self, path):
+        """
+        :param path: path to the directory that should be removed
+        :return: None
+        """
+        self._client.rmdir(six.text_type(path))
 
     def remove(self, path):
         """

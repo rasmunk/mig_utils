@@ -41,11 +41,29 @@ class ERDASSHFSShareTest(unittest.TestCase):
         self.tmp_file = "".join(["tmp", self.seed])
         self.write_file = "".join(["write_test", self.seed])
         self.binary_file = "".join(["binary_test", self.seed])
+        self.dir_path = "".join(["directory", self.seed])
+
+        self.files = [
+            self.tmp_file,
+            self.tmp_file,
+            self.write_file,
+            self.binary_file,
+            self.write_file,
+        ]
+        self.directories = [self.dir_path]
 
     def tearDown(self):
-        self.share.remove(self.tmp_file)
-        self.share.remove(self.write_file)
-        self.share.remove(self.binary_file)
+        for f in self.files:
+            if self.share.exists(f):
+                self.share.remove(f)
+
+        for d in self.directories:
+            if self.share.exists(d):
+                self.share.rmdir(d)
+
+        share_content = self.share.list()
+        for f in self.files + self.directories:
+            self.assertNotIn(f, share_content)
         self.share = None
 
     def test_share(self):
@@ -91,6 +109,11 @@ class ERDASSHFSShareTest(unittest.TestCase):
 
         self.assertIn(test_binary, self.share.read_binary(self.binary_file))
         self.assertIn(test_b_num, self.share.read_binary(self.binary_file))
+
+    def test_mkdir(self):
+        self.assertFalse(self.share.exists(self.dir_path))
+        self.share.mkdir(self.dir_path)
+        self.assertIn(self.dir_path, self.share.list())
 
 
 class IDMCSSHFSShareTest(unittest.TestCase):
@@ -104,6 +127,7 @@ class IDMCSSHFSShareTest(unittest.TestCase):
         self.tmp_file = "".join(["tmp", self.seed])
         self.write_file = "".join(["write_test", self.seed])
         self.binary_file = "".join(["binary_test", self.seed])
+        self.dir_path = "".join(["directory", self.seed])
 
     def tearDown(self):
         self.share.remove(self.tmp_file)
@@ -154,6 +178,11 @@ class IDMCSSHFSShareTest(unittest.TestCase):
 
         self.assertIn(test_binary, self.share.read_binary(self.binary_file))
         self.assertIn(test_b_num, self.share.read_binary(self.binary_file))
+
+    def test_mkdir(self):
+        self.assertFalse(self.share.exists(self.dir_path))
+        self.share.mkdir(self.dir_path)
+        self.assertIn(self.dir_path, self.share.list())
 
 
 class ERDASFTPShareTest(unittest.TestCase):
@@ -169,17 +198,30 @@ class ERDASFTPShareTest(unittest.TestCase):
         self.write_file = "".join(["write_test", self.seed])
         self.binary_file = "".join(["binary_test", self.seed])
         self.write_image = "".join(["kmeans_write.tif", self.seed])
+        self.dir_path = "".join(["directory", self.seed])
         self.img = "kmeans.tif"
 
+        self.files = [
+            self.tmp_file,
+            self.tmp_file,
+            self.write_file,
+            self.binary_file,
+            self.write_file,
+        ]
+        self.directories = [self.dir_path]
+
     def tearDown(self):
-        self.share.remove(self.tmp_file)
-        self.share.remove(self.write_file)
-        self.share.remove(self.binary_file)
-        self.share.remove(self.write_image)
-        self.assertNotIn(self.tmp_file, self.share.list())
-        self.assertNotIn(self.write_image, self.share.list())
-        self.assertNotIn(self.binary_file, self.share.list())
-        self.assertNotIn(self.write_image, self.share.list())
+        for f in self.files:
+            if self.share.exists(f):
+                self.share.remove(f)
+
+        for d in self.directories:
+            if self.share.exists(d):
+                self.share.rmdir(d)
+
+        share_content = self.share.list()
+        for f in self.files + self.directories:
+            self.assertNotIn(f, share_content)
         self.share = None
 
     def test_share(self):
@@ -251,6 +293,11 @@ class ERDASFTPShareTest(unittest.TestCase):
                 new_image = new_b_file.read()
                 self.assertGreaterEqual(sys.getsizeof(new_image), 133246888)
 
+    def test_mkdir(self):
+        self.assertFalse(self.share.exists(self.dir_path))
+        self.share.mkdir(self.dir_path)
+        self.assertIn(self.dir_path, self.share.list())
+
 
 class IDMCSftpShareTest(unittest.TestCase):
     share = None
@@ -265,17 +312,30 @@ class IDMCSftpShareTest(unittest.TestCase):
         self.write_file = "".join(["write_test", self.seed])
         self.binary_file = "".join(["binary_test", self.seed])
         self.write_image = "".join(["kmeans_write.tif", self.seed])
+        self.dir_path = "".join(["directory", self.seed])
         self.img = "kmeans.tif"
 
+        self.files = [
+            self.tmp_file,
+            self.tmp_file,
+            self.write_file,
+            self.binary_file,
+            self.write_file,
+        ]
+        self.directories = [self.dir_path]
+
     def tearDown(self):
-        self.share.remove(self.tmp_file)
-        self.share.remove(self.write_file)
-        self.share.remove(self.binary_file)
-        self.share.remove(self.write_image)
-        self.assertNotIn(self.tmp_file, self.share.list())
-        self.assertNotIn(self.write_image, self.share.list())
-        self.assertNotIn(self.binary_file, self.share.list())
-        self.assertNotIn(self.write_image, self.share.list())
+        for f in self.files:
+            if self.share.exists(f):
+                self.share.remove(f)
+
+        for d in self.directories:
+            if self.share.exists(d):
+                self.share.rmdir(d)
+
+        share_content = self.share.list()
+        for f in self.files + self.directories:
+            self.assertNotIn(f, share_content)
         self.share = None
 
     def test_share(self):
@@ -363,9 +423,16 @@ class ShareSFTPSeekOffsetTest(unittest.TestCase):
         with self.share.open(self.seek_file, "w") as _file:
             _file.write(self.data)
 
+        self.files = [self.seek_file]
+
     def tearDown(self):
-        self.share.remove(self.seek_file)
-        self.assertNotIn(self.seek_file, self.share.list())
+        for f in self.files:
+            if self.share.exists(f):
+                self.share.remove(f)
+
+        share_content = self.share.list()
+        for f in self.files:
+            self.assertNotIn(f, share_content)
         self.share = None
 
     def test_seek_offset(self):
@@ -463,9 +530,16 @@ class ShareSSHFSSeekOffsetTest(unittest.TestCase):
         with self.share.open(self.seek_file, "w") as _file:
             _file.write(self.data)
 
+        self.files = [self.seek_file]
+
     def tearDown(self):
-        self.share.remove(self.seek_file)
-        self.assertNotIn(self.seek_file, self.share.list())
+        for f in self.files:
+            if self.share.exists(f):
+                self.share.remove(f)
+
+        share_content = self.share.list()
+        for f in self.files:
+            self.assertNotIn(f, share_content)
         self.share = None
 
     def test_seek_offset(self):
